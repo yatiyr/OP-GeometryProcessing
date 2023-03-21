@@ -1,0 +1,18 @@
+[submodule "OP_GeometryProcessing/external/glfw"]
+	path = OP_GeometryProcessing/external/glfw
+	url = https://github.com/yatiyr/glfw.git
+[submodule "OP_GeometryProcessing/external/glm"]
+	path = OP_GeometryProcessing/external/glm
+	url = https://github.com/yatiyr/glm.git
+[submodule "OP_GeometryProcessing/external/imgui"]
+	path = OP_GeometryProcessing/external/imgui
+	url = https://github.com/yatiyr/imgui.git
+[submodule "OP_GeometryProcessing/external/implot"]
+	path = OP_GeometryProcessing/external/implot
+	url = https://github.com/yatiyr/implot.git
+[submodule "OP_GeometryProcessing/external/ImGuizmo"]
+	path = OP_GeometryProcessing/external/ImGuizmo
+	url = https://github.com/yatiyr/ImGuizmo.git
+[submodule "OP_GeometryProcessing/external/spdlog"]
+	path = OP_GeometryProcessing/external/spdlog
+	url = https://github.com/yatiyr/spdlog.git
