@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <fstream>
 
+#include <GeoProcess/System/CoreSystem/Logger.h>
 
 #ifdef OP_PLATFORM_WINDOWS
 	#include <Windows.h>

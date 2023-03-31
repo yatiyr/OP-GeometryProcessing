@@ -2,7 +2,7 @@ include "dependencies.lua"
 
 workspace "GeoProcess"
 	architecture "x86_64"
-	startproject "OP_GeometryProcessing"
+	startproject "OP_GeoProcessApp"
 
 
 	configurations
@@ -19,10 +19,13 @@ workspace "GeoProcess"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-group "Main"
+group "Lib"
 	include "OP_GeometryProcessing"
 group ""
 
+group "App"
+	include "OP_GeoProcessApp"
+group ""
 
 group "ThirdParty"
 	include "OP_GeometryProcessing/external/glfw"

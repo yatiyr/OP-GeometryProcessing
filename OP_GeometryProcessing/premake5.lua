@@ -1,5 +1,5 @@
 project "OP_GeometryProcessing"
-	kind "ConsoleApp"
+	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "off"
@@ -45,6 +45,7 @@ project "OP_GeometryProcessing"
 		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
+		"%{IncludeDir.ImPlot}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.tinyexr}",
@@ -63,11 +64,8 @@ project "OP_GeometryProcessing"
 		"%{Library.Assimp}"
 	}
 
-	postbuildcommands
-	{
-		'{COPY} "%{wks.location}/OP_GeometryProcessing/assets" "%{cfg.targetdir}/assets"',
-		'{COPY} "%{wks.location}/OP_GeometryProcessing/external/assimp/bin/Release/assimp-vc143-mt.dll" "%{cfg.targetDir}"'
-	}
+	filter "files:external/ImGuizmo/**.cpp"
+		flags {"NoPCH"}
 
 
 	filter "configurations:Debug"
