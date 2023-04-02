@@ -1,5 +1,5 @@
 #type vertex
-#version 450 core
+#version 460 core
 
 // ------------------ DEFINES ----------------- //
 #include Defines.glsl
@@ -25,7 +25,7 @@ void main()
 }
 
 #type fragment
-#version 450 core
+#version 460 core
 
 // ------------------ DEFINES ----------------- //
 #include Defines.glsl

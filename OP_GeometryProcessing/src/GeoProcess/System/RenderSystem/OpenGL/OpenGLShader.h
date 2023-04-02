@@ -62,6 +62,6 @@ namespace GP
 		std::string m_Name;
 
 		std::unordered_map<GLenum, std::string> m_Sources;
-		std::unordered_map<GLenum, GLuint> m_Stages;
+		std::unordered_map<GLenum, uint32_t> m_Stages;
 	};
 }

@@ -71,7 +71,7 @@ namespace GP
 	void OpenGLShader::SetFloat2(uint32_t loc, const glm::vec2& value) { UploadUniformFloat2(loc, value); }
 	void OpenGLShader::SetFloat3(uint32_t loc, const glm::vec3& value) { UploadUniformFloat3(loc, value); }
 	void OpenGLShader::SetFloat4(uint32_t loc, const glm::vec4& value) { UploadUniformFloat4(loc, value); }
-	void OpenGLShader::SetMat4(uint32_t loc, const glm::mat4& value) {  }
+	void OpenGLShader::SetMat4(uint32_t loc, const glm::mat4& value) { UploadUniformMat4(loc, value); }
 
 	void OpenGLShader::UploadUniformInt(const std::string& name, int value) 
 	{
@@ -164,14 +164,20 @@ namespace GP
 
 		GP_INFO("Shader [{0}] has successfully been linked", m_Name);
 		for (auto& el : m_Stages)
+		{
 			glDetachShader(program, el.second);
+			glDeleteShader(el.second);
+		}			
+
+		m_RendererID = program;
 	}
 
 	void OpenGLShader::CompileShader()
 	{
-		GP_INFO("Shader - [{0}] is being compiled", m_Name);
+
 		for (auto& el : m_Sources)
 		{
+			GP_INFO("Shader - [{0}], Stage [{1}] is being compiled", m_Name, ShaderUtils::GLShaderStageToString(el.first));
 			GLuint shader = glCreateShader(el.first);
 			const GLchar* source = (const GLchar*)el.second.c_str();
 			glShaderSource(shader, 1, &source, 0);
@@ -192,7 +198,7 @@ namespace GP
 
 				return;
 			}
-			GP_INFO("Shader - [{0}] has successfully been compiled", m_Name);
+			GP_INFO("Shader - [{0}], Stage[{1}] has successfully been compiled", m_Name, ShaderUtils::GLShaderStageToString(el.first));
 			m_Stages[el.first] = shader;
 		}
 	}

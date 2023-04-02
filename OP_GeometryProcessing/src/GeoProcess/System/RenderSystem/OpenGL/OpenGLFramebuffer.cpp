@@ -388,7 +388,7 @@ namespace GP
 			glReadBuffer(GL_NONE);
 		}
 
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE && glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS)
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE && glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT)
 		{
 			GP_ERROR("FRAMEBUFFER INVALIDATION FAILED {0}", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 		}

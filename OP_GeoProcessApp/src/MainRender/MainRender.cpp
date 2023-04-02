@@ -119,7 +119,7 @@ namespace GP
 		s_RenderData.cube = Cube::Create();
 
 		// Initialize Model
-		s_RenderData.model = ResourceManager::GetModel("baseMeshMan");
+		s_RenderData.model = ResourceManager::GetModel("Female base");
 
 		// Initialize main render settings
 		RenderCommand::Enable(MODE::DEPTH_TEST);

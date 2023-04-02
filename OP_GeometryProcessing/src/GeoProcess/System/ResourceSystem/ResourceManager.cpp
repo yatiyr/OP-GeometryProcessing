@@ -154,9 +154,10 @@ namespace GP
 			for (const auto& entry : std::filesystem::recursive_directory_iterator(meshFilePath))
 			{
 				if (entry.is_regular_file() && (
-					entry.path().extension() == ".gltf") ||
+					entry.path().extension() == ".gltf" ||
 					entry.path().extension() == ".fbx" ||
-					entry.path().extension() == ".dae")
+					entry.path().extension() == ".dae" ||
+					entry.path().extension() == ".obj"))
 				{
 					// Read the file and put it into unordered map with key
 					// as its filename
