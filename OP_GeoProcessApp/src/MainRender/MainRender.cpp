@@ -65,7 +65,7 @@ namespace GP
 		Ref<UniformBuffer> BoneMatricesUniformBuffer;
 
 		// -------- Buffer for Tone Mapping ------- //
-		struct ToneMappingSettings { float exposure = 5.0; bool hdr = false; } ToneMappingSettingsBuffer;
+		struct ToneMappingSettings { float exposure = 4.0; bool hdr = false; } ToneMappingSettingsBuffer;
 
 		Ref<UniformBuffer> ToneMappingSettingsUniformBuffer;
 
@@ -85,8 +85,8 @@ namespace GP
 		// ------- Model ------- //
 		Ref<Model> model;
 		glm::mat4 modelTransform = glm::mat4(1.0f);
-		float u_Roughness = 1.0f;
-		float u_Metalness = 0.25f;
+		float u_Roughness = 0.15f;
+		float u_Metalness = 0.35f;
 		glm::vec3 u_Albedo = glm::vec3(1.0, 1.0, 1.0);
 
 		// ----- Viewport Settings ----- //
@@ -123,7 +123,7 @@ namespace GP
 		s_RenderData.cube = Cube::Create();
 
 		// Initialize Model
-		s_RenderData.model = ResourceManager::GetModel("Female base");
+		s_RenderData.model = ResourceManager::GetModel("centaur");
 
 		// Initialize main render settings
 		RenderCommand::Enable(MODE::DEPTH_TEST);

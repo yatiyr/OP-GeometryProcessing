@@ -7,6 +7,7 @@
 #include <ImGuizmo/ImGuizmo.h>
 
 #include <Editor/EditorLayer.h>
+#include <MainRender/MainRender.h>
 
 #include <glm/gtc/type_ptr.hpp>
 #include <Math/Math.h>
@@ -124,6 +125,7 @@ namespace GP
 				oldRotation += dRotation;
 				glm::mat4 rotMat = glm::toMat4(glm::quat(oldRotation));
 				transform = glm::translate(glm::mat4(1.0f), translation) * rotMat * glm::scale(glm::mat4(1.0f), scale);
+				MainRender::SetModelTransform(transform);
 			}
 
 		}

@@ -157,7 +157,8 @@ namespace GP
 					entry.path().extension() == ".gltf" ||
 					entry.path().extension() == ".fbx" ||
 					entry.path().extension() == ".dae" ||
-					entry.path().extension() == ".obj"))
+					entry.path().extension() == ".obj" ||
+					entry.path().extension() == ".off"))
 				{
 					// Read the file and put it into unordered map with key
 					// as its filename

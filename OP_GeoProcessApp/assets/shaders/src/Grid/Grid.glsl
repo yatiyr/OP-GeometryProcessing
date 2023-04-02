@@ -69,16 +69,16 @@ vec4 grid(vec3 fragPos3D, float scale, bool drawAxis) {
     float line = min(grid.x, grid.y);
     float minimumz = min(derivative.y, 1);
     float minimumx = min(derivative.x, 1);
-    vec4 color = vec4(0.2, 0.2, 0.2, 1.0 - min(line, 1.0));
+    vec4 color = vec4(0.15, 0.15, 0.15, 1.0 - min(line, 1.0));
     // z axis
-    if(fragPos3D.x > -0.1 * minimumx && fragPos3D.x < 0.1 * minimumx)
+    if(fragPos3D.x > -20.0 * minimumx && fragPos3D.x < 20.0 * minimumx)
     {
         color.y = 0.5;
         color.z = 1.0;
     }
         
     // x axis
-    if(fragPos3D.z > -0.1 * minimumz && fragPos3D.z < 0.1 * minimumz)
+    if(fragPos3D.z > -20.0 * minimumz && fragPos3D.z < 20.0 * minimumz)
     {
         color.x = 1.0;
         color.z = 0.3;
@@ -98,7 +98,7 @@ float computeLinearDepth(vec3 pos)
     float clip_space_depth = (clip_space_pos.z / clip_space_pos.w) * 2.0 - 1.0;
     float linearDepth = ( 2.0 * 0.1 * 10.0) / (10.0 + 0.1 - clip_space_depth * (10.0 - 0.1));
 
-    return linearDepth / 10.0;
+    return linearDepth / 20.0;
 }
 
 void main()
@@ -111,7 +111,7 @@ void main()
     float linearDepth = computeLinearDepth(FragPos3D);
     float fading = max(0, (0.5 - linearDepth));
 
-	FragColor = (grid(FragPos3D, 10, true) + grid(FragPos3D, 1, true)) * float(t > 0);//vec4(1.0, 0.0, 0.0, 1.0 * float(t > 0));
+	FragColor = (grid(FragPos3D, 0.05, true) + grid(FragPos3D, 0.025, true)) * float(t > 0);//vec4(1.0, 0.0, 0.0, 1.0 * float(t > 0));
     FragColor.w *= fading;
-    FragColor.w *= 0.4;
+    FragColor.w *= 0.9;
 }
