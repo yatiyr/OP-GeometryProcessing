@@ -11,6 +11,7 @@
 
 #include <GeoProcess/System/GuiSystem/Font/Font.h>
 
+#include <glad/glad.h>
 
 namespace GP
 {
@@ -195,6 +196,30 @@ namespace GP
 
 		m_ViewportComponent.OnImGuiRender();
 
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
+		ImGui::Begin("Properties", nullptr, ImGuiWindowFlags_NoTitleBar);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
+		RenderSpecs* spc = MainRender::GetRenderSpecs();
+
+		ImGui::Checkbox("Fill", &spc->fill);
+		ImGui::Checkbox("Line", &spc->line);
+		ImGui::ColorEdit4("Line Color", glm::value_ptr(spc->lineColor));
+		ImGui::Checkbox("Point", &spc->point);
+		ImGui::ColorEdit4("Point Color", glm::value_ptr(spc->pointColor));
+		if (ImGui::Checkbox("Backface Culling", &spc->backfaceCulling))
+		{
+			if (spc->backfaceCulling)
+				glEnable(GL_CULL_FACE);
+			else
+				glDisable(GL_CULL_FACE);
+		}
+		
+
+		ImGui::PopStyleVar();
+		ImGui::End();
+		ImGui::PopStyleVar();
+
 		ImGui::End();
 
 
@@ -206,11 +231,18 @@ namespace GP
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FUNCTION(EditorLayer::OnKeyPressed));
 		dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FUNCTION(EditorLayer::OnMouseButtonPressed));
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNCTION(EditorLayer::OnWindowResized));
 	}
 
 	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 	{
 		m_ViewportComponent.OnMouseButtonPressed(e);
+		return false;
+	}
+
+	bool EditorLayer::OnWindowResized(WindowResizeEvent& e)
+	{
+		// MainRender::ResizeViewport(e.GetWidth(), e.GetHeight());
 		return false;
 	}
 

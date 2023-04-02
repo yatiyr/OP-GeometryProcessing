@@ -119,8 +119,8 @@ void main()
 	
 
 		
-	vec3 radiance = vec3(1.0,0.7,0.5);
-	vec3 lightDir = normalize(vec3(0.25, 1.0, 0.25));
+	vec3 radiance = vec3(3.0,1.7,1.0);
+	vec3 lightDir = normalize(vec3(0.45, 1.0, 0.55));
 	vec3 halfwayDir = normalize(viewDir + lightDir);
 		
 

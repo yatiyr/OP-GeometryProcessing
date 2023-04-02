@@ -39,6 +39,8 @@ namespace GP
 
 	struct RenderData
 	{
+		// ------------ Render Specs --------------- //
+		RenderSpecs renderSpecs;
 		// ------------ Render Constant ------------ //
 		float Epsilon = 0.00000001;
 
@@ -63,7 +65,7 @@ namespace GP
 		Ref<UniformBuffer> BoneMatricesUniformBuffer;
 
 		// -------- Buffer for Tone Mapping ------- //
-		struct ToneMappingSettings { float exposure = 2.0; bool hdr = false; } ToneMappingSettingsBuffer;
+		struct ToneMappingSettings { float exposure = 5.0; bool hdr = false; } ToneMappingSettingsBuffer;
 
 		Ref<UniformBuffer> ToneMappingSettingsUniformBuffer;
 
@@ -72,6 +74,7 @@ namespace GP
 		Ref<Shader> postProcessingShader;
 		Ref<Shader> triangleIdShader;
 		Ref<Shader> gridShader;
+		Ref<Shader> flatColorRenderShader;
 
 		// ------ Meshes ------ //
 		Ref<Cube> cube;
@@ -81,6 +84,7 @@ namespace GP
 
 		// ------- Model ------- //
 		Ref<Model> model;
+		glm::mat4 modelTransform = glm::mat4(1.0f);
 		float u_Roughness = 1.0f;
 		float u_Metalness = 0.25f;
 		glm::vec3 u_Albedo = glm::vec3(1.0, 1.0, 1.0);
@@ -109,7 +113,7 @@ namespace GP
 	void MainRender::Init(float width, float height)
 	{
 		// Initialize environment map
-		s_RenderData.environmentMap = ResourceManager::GetEnvironmentMap("sky1");
+		s_RenderData.environmentMap = ResourceManager::GetEnvironmentMap("white-gradient-background");
 		s_RenderData.environmentMap->GenerateMaps();
 
 		// Initialize meshes
@@ -136,6 +140,7 @@ namespace GP
 		s_RenderData.postProcessingShader = ResourceManager::GetShader("PostProcessing.glsl");
 		s_RenderData.triangleIdShader = ResourceManager::GetShader("MousePicking.glsl");
 		s_RenderData.gridShader = ResourceManager::GetShader("Grid.glsl");
+		s_RenderData.flatColorRenderShader = ResourceManager::GetShader("FlatColorRenderShader.glsl");
 
 		// Set Uniform buffer values
 		s_RenderData.CameraUniformBuffer = UniformBuffer::Create(sizeof(RenderData::CameraData), 1);
@@ -234,6 +239,21 @@ namespace GP
 		s_RenderData.ToneMappingSettingsBuffer.hdr = Hdr;
 	}
 
+	RenderSpecs* MainRender::GetRenderSpecs()
+	{
+		return &s_RenderData.renderSpecs;
+	}
+
+	void MainRender::SetModelTransform(glm::mat4 t)
+	{
+		s_RenderData.modelTransform = t;
+	}
+
+	glm::mat4& MainRender::GetModelTransform()
+	{
+		return s_RenderData.modelTransform;
+	}
+
 	bool* MainRender::GetShowGrid()
 	{
 		return &s_RenderData.ShowGrid;
@@ -241,7 +261,6 @@ namespace GP
 
 	void MainRender::RenderChain(TimeStep ts)
 	{
-		glm::mat4 model = glm::mat4(1.0f);
 
 		s_RenderData.triangleIdFramebufferPass->InvokeCommands(
 			[&]()-> void {
@@ -249,7 +268,7 @@ namespace GP
 				s_RenderData.triangleIdFramebufferPass->GetFramebuffer()->ClearAttachment(0, -1);
 				s_RenderData.triangleIdShader->Bind();
 
-				s_RenderData.TransformBuffer.Model = model;
+				s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
 				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
 				s_RenderData.model->Draw();
 			}
@@ -260,25 +279,53 @@ namespace GP
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 				glStencilMask(0x00);
 
-				s_RenderData.mainShader->Bind();
 
-				s_RenderData.mainShader->SetFloat(0, s_RenderData.u_Roughness);
-				s_RenderData.mainShader->SetFloat(1, s_RenderData.u_Metalness);
-				s_RenderData.mainShader->SetFloat3(2, s_RenderData.u_Albedo);
+				RenderSpecs spc = s_RenderData.renderSpecs;
 
-				// -------- DRAW SCENE --------- //
-				s_RenderData.environmentMap->BindIrradianceMap(0);
-				s_RenderData.environmentMap->BindPrefilterMap(1);
-				s_RenderData.environmentMap->BindBrdfLUT(2);
+				if (spc.fill)
+				{
+					s_RenderData.mainShader->Bind();
 
-				uint32_t ditheringTex = ResourceManager::GetTexture("BayerMatrixDithering")->GetRendererID();
-				glBindTextureUnit(3, ditheringTex);
+					s_RenderData.mainShader->SetFloat(0, s_RenderData.u_Roughness);
+					s_RenderData.mainShader->SetFloat(1, s_RenderData.u_Metalness);
+					s_RenderData.mainShader->SetFloat3(2, s_RenderData.u_Albedo);
 
-				
-				s_RenderData.TransformBuffer.Model = model;
-				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
-				s_RenderData.model->Draw();
+					// -------- DRAW SCENE --------- //
+					s_RenderData.environmentMap->BindIrradianceMap(0);
+					s_RenderData.environmentMap->BindPrefilterMap(1);
+					s_RenderData.environmentMap->BindBrdfLUT(2);
 
+					uint32_t ditheringTex = ResourceManager::GetTexture("BayerMatrixDithering")->GetRendererID();
+					glBindTextureUnit(3, ditheringTex);
+
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
+					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
+					s_RenderData.model->Draw();
+				}
+
+				if (spc.line)
+				{
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+					s_RenderData.flatColorRenderShader->Bind();
+					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
+					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
+					s_RenderData.flatColorRenderShader->SetFloat4(0, spc.lineColor);
+					s_RenderData.model->Draw();
+				}
+
+				if (spc.point)
+				{
+					glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+					s_RenderData.flatColorRenderShader->Bind();
+					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
+					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
+					s_RenderData.flatColorRenderShader->SetFloat4(0, spc.pointColor);
+					s_RenderData.model->Draw();
+				}
+
+
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				s_RenderData.environmentMap->RenderSkybox();
 			}
 		);
@@ -298,7 +345,7 @@ namespace GP
 				uint32_t resolvedImage = s_RenderData.sampleResolveFramebuffer->GetColorAttachmentRendererID(0);
 				glBindTextureUnit(0, resolvedImage);
 
-				model = glm::mat4(1.0f);
+				glm::mat4 model = glm::mat4(1.0f);
 				s_RenderData.TransformBuffer.Model = model;
 				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
 				s_RenderData.plane->Draw();

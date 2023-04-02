@@ -30,6 +30,7 @@ namespace GP
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+		bool OnWindowResized(WindowResizeEvent& e);
 	private:
 		void RenderDockspace();
 	private:

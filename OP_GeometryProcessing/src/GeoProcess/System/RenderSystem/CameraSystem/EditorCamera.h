@@ -88,7 +88,7 @@ namespace GP
 		glm::vec3 m_TargetPosition = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 m_TargetFocalPoint = { 0.0f, 0.0f, 0.0f };
 
-		float m_SmoothTransitionTime = 10.0f;
+		float m_SmoothTransitionTime = 15.0f;
 
 		float m_ViewportWidth = 1280;
 		float m_ViewportHeight = 720;
