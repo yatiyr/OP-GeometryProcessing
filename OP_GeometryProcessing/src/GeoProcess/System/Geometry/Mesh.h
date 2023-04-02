@@ -82,9 +82,9 @@ namespace GP
 		const std::vector<glm::vec2> GetTexCoords() const;
 
 		const uint32_t* GetIndices() const;
+		const std::vector<uint32_t> GetIndicesVector() const;
 
-
-		void Draw() const;
+		virtual void Draw() const;
 		void SetSmooth(bool smooth);
 
 	protected:

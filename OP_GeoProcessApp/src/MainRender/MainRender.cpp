@@ -84,10 +84,12 @@ namespace GP
 
 		// ------- Model ------- //
 		Ref<Model> model;
+		Ref<EditorMesh> editorMesh;
 		glm::mat4 modelTransform = glm::mat4(1.0f);
-		float u_Roughness = 0.15f;
+		float u_Roughness = 0.25f;
 		float u_Metalness = 0.35f;
 		glm::vec3 u_Albedo = glm::vec3(1.0, 1.0, 1.0);
+
 
 		// ----- Viewport Settings ----- //
 		glm::vec2 ViewportSize{ 0.0f, 0.0f };
@@ -123,7 +125,8 @@ namespace GP
 		s_RenderData.cube = Cube::Create();
 
 		// Initialize Model
-		s_RenderData.model = ResourceManager::GetModel("centaur");
+		s_RenderData.model = ResourceManager::GetModel("man0");
+		s_RenderData.editorMesh = EditorMesh::Create(s_RenderData.model);
 
 		// Initialize main render settings
 		RenderCommand::Enable(MODE::DEPTH_TEST);
@@ -259,6 +262,36 @@ namespace GP
 		return &s_RenderData.ShowGrid;
 	}
 
+	int* MainRender::GetGeoDistStartIndex()
+	{
+		return &s_RenderData.editorMesh->m_StartIndex;
+	}
+
+	int* MainRender::GetGeoDistEndIndex()
+	{
+		return &s_RenderData.editorMesh->m_EndIndex;
+	}
+
+	int* MainRender::GetGeodesicCalcMethod()
+	{
+		return &s_RenderData.editorMesh->m_GeodesicDistanceCalcMethod;
+	}
+
+	bool* MainRender::GetShowLine()
+	{
+		return &s_RenderData.editorMesh->m_ShowLine;
+	}
+
+	float* MainRender::GetCalcTime()
+	{
+		return &s_RenderData.editorMesh->m_CalcTime;
+	}
+
+	Ref<EditorMesh> MainRender::GetEditorMesh()
+	{
+		return s_RenderData.editorMesh;
+	}
+
 	void MainRender::RenderChain(TimeStep ts)
 	{
 
@@ -301,7 +334,7 @@ namespace GP
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
 					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
-					s_RenderData.model->Draw();
+					s_RenderData.editorMesh->Draw();
 				}
 
 				if (spc.line)
@@ -311,7 +344,7 @@ namespace GP
 					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
 					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
 					s_RenderData.flatColorRenderShader->SetFloat4(0, spc.lineColor);
-					s_RenderData.model->Draw();
+					s_RenderData.editorMesh->Draw();
 				}
 
 				if (spc.point)
@@ -321,10 +354,21 @@ namespace GP
 					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
 					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
 					s_RenderData.flatColorRenderShader->SetFloat4(0, spc.pointColor);
-					s_RenderData.model->Draw();
+					s_RenderData.editorMesh->Draw();
 				}
 
+				if (s_RenderData.editorMesh->m_ShowLine)
+				{
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+					glLineWidth(7.0f);
+					s_RenderData.flatColorRenderShader->Bind();
+					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
+					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
+					s_RenderData.flatColorRenderShader->SetFloat4(0, s_RenderData.editorMesh->m_LineColor);
+					s_RenderData.editorMesh->GetLine()->Draw();
+				}
 
+				glLineWidth(1.0f);
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				s_RenderData.environmentMap->RenderSkybox();
 			}

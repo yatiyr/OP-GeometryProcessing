@@ -28,6 +28,7 @@ namespace GP
 	{
 	public:
 		static std::filesystem::path GetShaderCacheDirectory();
+		static std::filesystem::path GetOutputDirectory();
 
 		static int Init(std::filesystem::path rootPath);
 

@@ -2,6 +2,7 @@
 
 #include <GeoProcess/System/RenderSystem/CameraSystem/EditorCamera.h>
 #include <GeoProcess/System/RenderSystem/Framebuffer.h>
+#include <MeshOperations/EditorMesh.h>
 
 #include <glm/glm.hpp>
 
@@ -17,8 +18,6 @@ namespace GP
 		
 		bool backfaceCulling = true;
 
-		glm::vec3 point1Pos;
-		glm::vec3 point2Pos;
 	};
 
 	struct MainRenderStats
@@ -52,6 +51,15 @@ namespace GP
 		static glm::mat4& GetModelTransform();
 
 		static bool* GetShowGrid();
+
+
+		static int* GetGeoDistStartIndex();
+		static int* GetGeoDistEndIndex();
+		static int* GetGeodesicCalcMethod();
+		static bool* GetShowLine();
+		static float* GetCalcTime();
+
+		static Ref<EditorMesh> GetEditorMesh();
 
 	private:
 

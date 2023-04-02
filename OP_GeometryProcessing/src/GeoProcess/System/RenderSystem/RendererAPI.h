@@ -23,7 +23,7 @@ namespace GP
 
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount = 0) = 0;
 		virtual void DrawIndexedBinded(const Ref<VertexArray>& vertexArray, uint32_t indexCount) = 0;
-
+		virtual void DrawLine(const Ref<VertexArray>& vertexArray, uint32_t count = 0) = 0;
 		virtual void Enable(MODE mode) = 0;
 		virtual void Disable(MODE mode) = 0;
 

@@ -170,7 +170,7 @@ namespace GP
 					GP_INFO("\t\tFileName {0}", entryPath.filename());
 
 					Assimp::Importer import;
-					const aiScene* scene = import.ReadFile(entryPath.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_DropNormals);
+					const aiScene* scene = import.ReadFile(entryPath.string(), aiProcessPreset_TargetRealtime_Fast); //aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_DropNormals);
 
 					if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 					{
@@ -179,7 +179,7 @@ namespace GP
 					}
 
 					Ref<Model> model = Model::Create(scene->mRootNode, scene);
-
+					model->SetName(entryPath.stem().string());
 					uint32_t id = Allocate(entryPath.stem().string());
 					s_ResourceManagerData.Models[id] = model;
 
@@ -325,6 +325,11 @@ namespace GP
 	std::filesystem::path ResourceManager::GetShaderCacheDirectory()
 	{
 		return s_ResourceManagerData.root / "assets" / "cache" / "shader";
+	}
+
+	std::filesystem::path ResourceManager::GetOutputDirectory()
+	{
+		return s_ResourceManagerData.root / "assets" / "output";
 	}
 
 	// Reads the structure in root file path and loads the resources

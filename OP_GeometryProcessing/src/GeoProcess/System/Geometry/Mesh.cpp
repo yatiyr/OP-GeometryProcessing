@@ -326,6 +326,8 @@ namespace GP
 
 	const uint32_t* Mesh::GetIndices() const { return m_Indices.data(); }
 
+	const std::vector<uint32_t> Mesh::GetIndicesVector() const { return m_Indices; }
+
 	void Mesh::Draw() const
 	{
 		RenderCommand::DrawIndexedBinded(m_VertexArray, m_Indices.size());

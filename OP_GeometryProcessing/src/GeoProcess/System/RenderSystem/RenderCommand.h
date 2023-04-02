@@ -23,6 +23,11 @@ namespace GP
 			s_RendererAPI->DrawIndexed(vertexArray, count);
 		}
 
+		inline static void DrawLine(const Ref<VertexArray>& vertexArray, uint32_t count = 0)
+		{
+			s_RendererAPI->DrawLine(vertexArray, count);
+		}
+
 		inline static void DrawIndexedBinded(const Ref<VertexArray>& vertexArray, uint32_t count = 0)
 		{
 			s_RendererAPI->DrawIndexedBinded(vertexArray, count);

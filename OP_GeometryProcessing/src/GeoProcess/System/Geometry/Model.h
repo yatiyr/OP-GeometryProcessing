@@ -44,6 +44,7 @@ namespace GP
 		void ProcessNode(aiNode* node, const aiScene* scene, ModelNode* currentNode, ModelNode* parentNode, std::unordered_map<std::string, BoneInfo>& boneInfoMap, int& boneCounter);
 		ModelMesh ProcessMesh(aiMesh* mesh, const aiScene* scene, aiNode* currentNode, std::unordered_map<std::string, BoneInfo>& boneInfoMap, int& BoneCounter);
 
+		ModelMesh GetMesh(uint32_t index);
 
 		static Ref<Model> Create(aiNode* rootNode, const aiScene* scene);
 
@@ -53,10 +54,14 @@ namespace GP
 
 		BoneMatricesData& GetFinalBoneMatrices();
 
+		std::string GetName() const { return m_Name; }
+		void SetName(std::string name) { m_Name = name; }
+
 	private:
 		ModelNode* m_RootNode;
-
+		std::string m_Name;
 		std::vector<ModelMesh> m_ModelMeshes;
+		std::vector<glm::vec3> m_ShortestPathVertices;
 
 		std::unordered_map<std::string, BoneInfo> m_BoneInfoMap;
 		int m_BoneCounter = 0;

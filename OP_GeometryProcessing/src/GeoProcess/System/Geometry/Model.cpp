@@ -96,6 +96,11 @@ namespace GP
 		return std::make_shared<Model>(rootNode, scene);
 	}
 
+	ModelMesh Model::GetMesh(uint32_t index)
+	{
+		return m_ModelMeshes[index];
+	}
+
 	void Model::UpdateAnimation(float deltaTime)
 	{
 		m_AnimationHandler.UpdateAnimation(deltaTime);

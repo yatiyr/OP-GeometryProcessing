@@ -214,7 +214,38 @@ namespace GP
 			else
 				glDisable(GL_CULL_FACE);
 		}
-		
+
+		int currentSelectedID = MainRender::GetEditorMesh()->m_GeodesicDistanceCalcMethod;
+		std::vector<std::string> calcMethodNames = { "Min Heap", "Array" };
+		if (ImGui::BeginCombo("CalcMethod", MainRender::GetEditorMesh()->GiveCalcMethodName().c_str(), ImGuiComboFlags_PopupAlignLeft))
+		{
+			for (int i = 0; i < calcMethodNames.size(); i++)
+			{
+				const bool isSelected = (currentSelectedID == i);
+				if (ImGui::Selectable(calcMethodNames[i].c_str(), isSelected))
+				{
+					currentSelectedID = i;
+					MainRender::GetEditorMesh()->m_GeodesicDistanceCalcMethod = i;
+				}
+
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::Text("Distance Calc Time %f", MainRender::GetEditorMesh()->m_CalcTime);
+		if (ImGui::InputInt("StartIndex", MainRender::GetGeoDistStartIndex()))
+		{
+			MainRender::GetEditorMesh()->SetupLineVertices();
+		}
+		if (ImGui::InputInt("EndIndex", MainRender::GetGeoDistEndIndex()))
+		{
+			MainRender::GetEditorMesh()->SetupLineVertices();
+		};
+		ImGui::ColorEdit4("Line Color", glm::value_ptr(MainRender::GetEditorMesh()->m_LineColor));
+		ImGui::Checkbox("Show Line", MainRender::GetShowLine());
 
 		ImGui::PopStyleVar();
 		ImGui::End();

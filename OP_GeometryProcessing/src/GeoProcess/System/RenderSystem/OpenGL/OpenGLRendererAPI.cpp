@@ -100,6 +100,12 @@ namespace GP
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 	}
 
+	void OpenGLRendererAPI::DrawLine(const Ref<VertexArray>& vertexArray, uint32_t count)
+	{
+		vertexArray->Bind();
+		glDrawArrays(GL_LINE_STRIP, 0, count);
+	}
+
 	void OpenGLRendererAPI::DrawIndexedBinded(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
 	{
 		vertexArray->Bind();
