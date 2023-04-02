@@ -6,6 +6,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
+#include <Editor/EditorLayer.h>
+
 namespace GP
 {
     class GpApp : public Application
@@ -14,7 +16,8 @@ namespace GP
         GpApp()
             : Application("Gp App")
         {
-
+            EditorLayer* editorLayer = EditorLayer::CreateEditor();
+            PushLayer(editorLayer);
         }
 
         ~GpApp()

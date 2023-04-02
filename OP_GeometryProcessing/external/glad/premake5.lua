@@ -27,4 +27,4 @@ project "Glad"
 
     filter "configurations:Release"
         runtime "Release"
-        optimize "Speed"
+        optimize "on"

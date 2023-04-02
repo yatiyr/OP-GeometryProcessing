@@ -25,6 +25,7 @@ project "OP_GeoProcessApp"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Assimp}",
+		"%{IncludeDir.Glad}",
 		"src"
 	}
 
@@ -35,7 +36,7 @@ project "OP_GeoProcessApp"
 
 	postbuildcommands
 	{
-		'{COPY} "%{wks.location}/OP_GeometryProcessing/assets" "%{cfg.targetdir}/assets"',
+		'{COPY} "%{wks.location}/OP_GeoProcessApp/assets" "%{cfg.targetdir}/assets"',
 		'{COPY} "%{wks.location}/OP_GeometryProcessing/external/assimp/bin/Release/assimp-vc143-mt.dll" "%{cfg.targetDir}"'
 	}
 
