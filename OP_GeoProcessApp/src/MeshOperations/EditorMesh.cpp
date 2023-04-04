@@ -190,6 +190,7 @@ namespace GP
 		// Node table is used for keeping track of vertices while running
 		// dijkstra's shortest path algorithm, it is used for geodesic distances
 		SetupNodeTable();
+		SetupNodeTableExport();
 
 		// Adjacency map is an unordered map (hash table) which holds the
 		// indices of vertices that are neighbors to a specific vertex
@@ -282,6 +283,7 @@ namespace GP
 		SetupTriangles();
 		SetupFlatElements();
 		SetupNodeTable();
+		SetupNodeTableExport();
 		SetupAdjacencyMap();
 		SetupTangentBitangents(false);
 		CalculateColors();
@@ -297,6 +299,16 @@ namespace GP
 		SetupArrayBuffer();
 		SetupMesh();
 
+	}
+
+	std::future<void> EditorMesh::ExportGDM()
+	{
+		return std::async(std::launch::async, [=]()
+			{
+				ComputeNxNGeodesicDistanceMatrix();
+				ExportNxNGeodesicDistanceMatrix();
+			}
+		);
 	}
 
 	void EditorMesh::CalculateSmoothNormals()
@@ -507,9 +519,32 @@ namespace GP
 		}
 	}
 
+	void EditorMesh::SetupNodeTableExport()
+	{
+		for (uint32_t i = 0; i < m_Vertices.size(); i++)
+		{
+			m_NodeTableExport[i].index = i;
+			m_NodeTableExport[i].prevIndex = -1;
+			m_NodeTableExport[i].shortestPathEstimate = std::numeric_limits<float>::max();
+			m_NodeTableExport[i].visited = false;
+			m_NodeTableExport[i].seen = false;
+		}
+	}
+
 	void EditorMesh::ClearNodeTable()
 	{
 		for (auto& el : m_NodeTable)
+		{
+			el.second.prevIndex = -1;
+			el.second.shortestPathEstimate = std::numeric_limits<float>::max();
+			el.second.visited = false;
+			el.second.seen = false;
+		}
+	}
+
+	void EditorMesh::ClearNodeTableExport()
+	{
+		for (auto& el : m_NodeTableExport)
 		{
 			el.second.prevIndex = -1;
 			el.second.shortestPathEstimate = std::numeric_limits<float>::max();
@@ -578,6 +613,54 @@ namespace GP
 				{
 					m_MinHeap.push(&m_NodeTable[el]);
 					m_NodeTable[el].seen = true;
+				}
+			}
+		}
+	}
+
+	void EditorMesh::ComputeGeodesicDistancesMinHeapExport(uint32_t index)
+	{
+		// Initialize starting vertex
+		m_NodeTableExport[index].visited = false;
+		m_NodeTableExport[index].shortestPathEstimate = 0.0f;
+		m_NodeTableExport[index].prevIndex = -1;
+		m_NodeTableExport[index].index = index;
+		m_NodeTableExport[index].seen = true;
+		// Push starting vertex to the queue
+		m_MinHeapExport.push(&m_NodeTableExport[index]);
+
+		while (!m_MinHeapExport.empty())
+		{
+			VertexNode* topNode = m_MinHeapExport.top();
+			m_MinHeapExport.pop();
+
+			m_NodeTableExport[topNode->index].visited = true;
+
+			for (auto el : m_AdjacencyMap[topNode->index])
+			{
+
+				// If the adjacent node has already been visited
+				// do not process it
+				if (m_NodeTableExport[el].visited)
+					continue;
+
+				// Calculate distance betwene two vertices
+				glm::vec3 current, neighbor;
+				current = m_Vertices[topNode->index];
+				neighbor = m_Vertices[el];
+				float distance = glm::distance(current, neighbor);
+
+				// Compare distance
+				if (distance + m_NodeTableExport[topNode->index].shortestPathEstimate < m_NodeTableExport[el].shortestPathEstimate)
+				{
+					m_NodeTableExport[el].shortestPathEstimate = distance + m_NodeTableExport[topNode->index].shortestPathEstimate;
+					m_NodeTableExport[el].prevIndex = topNode->index;
+				}
+
+				if (!m_NodeTableExport[el].seen)
+				{
+					m_MinHeapExport.push(&m_NodeTableExport[el]);
+					m_NodeTableExport[el].seen = true;
 				}
 			}
 		}
@@ -955,19 +1038,19 @@ namespace GP
 	void EditorMesh::ComputeNxNGeodesicDistanceMatrix()
 	{
 		// Clear our node table first
-		ClearNodeTable();
+		ClearNodeTableExport();
 
 		for (uint32_t i = 0; i < m_Vertices.size(); i++)
 		{
 			std::vector<float> row;
-			ComputeGeodesicDistances(i);
+			ComputeGeodesicDistancesMinHeapExport(i);
 			for (uint32_t j = 0; j < m_Vertices.size(); j++)
 			{
-				row.push_back(m_NodeTable[j].shortestPathEstimate);
+				row.push_back(m_NodeTableExport[j].shortestPathEstimate);
 			}
 
 			m_NxNGeodesicDistanceMatrix.push_back(row);
-			ClearNodeTable();
+			ClearNodeTableExport();
 		}
 	}
 
@@ -988,10 +1071,10 @@ namespace GP
 					out << " ";
 			}
 
+
 			if (i < m_NxNGeodesicDistanceMatrix.size() - 1)
 				out << "\n";
 		}
-
 		out.close();
 	}
 }

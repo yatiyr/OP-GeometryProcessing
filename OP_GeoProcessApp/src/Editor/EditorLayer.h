@@ -56,6 +56,9 @@ namespace GP
 		EditorCamera m_EditorCamera;
 
 		glm::mat4 m_ModelTransform;
+
+		bool m_ExportInProgress = false;
+		std::future<void> m_ExportState;
 	private:
 		static EditorLayer* s_Instance;
 

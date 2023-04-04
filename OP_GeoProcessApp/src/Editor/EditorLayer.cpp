@@ -279,6 +279,28 @@ namespace GP
 			MainRender::GetEditorMesh()->SmoothingFunction();
 		}
 
+
+		if (ImGui::Button("Export Distance Matrix") && !m_ExportInProgress)
+		{
+			m_ExportState = MainRender::GetEditorMesh()->ExportGDM();
+			m_ExportInProgress = true;
+		}
+
+		if (!m_ExportState.valid())
+		{
+			ImGui::Text("");
+		}
+		else if (m_ExportState.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+		{
+			ImGui::Text("Export Finished");
+			m_ExportState.get();
+			m_ExportInProgress = false;
+		}
+		else
+		{
+			ImGui::Text("Exporting...");
+		}
+
 		ImGui::PopStyleVar();
 		ImGui::End();
 		ImGui::PopStyleVar();

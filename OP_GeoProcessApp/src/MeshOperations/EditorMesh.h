@@ -191,6 +191,7 @@ namespace GP
 		void ComputeNxNGeodesicDistanceMatrix();
 		void ComputeGeodesicDistances(uint32_t index);
 		void ComputeGeodesicDistancesMinHeap(uint32_t index);
+		void ComputeGeodesicDistancesMinHeapExport(uint32_t index);
 		void ComputeGeodesicDistancesVector(uint32_t index);
 
 
@@ -206,6 +207,8 @@ namespace GP
 			      Ref<EnvironmentMap> envMap,
 				  uint32_t ditheringTex) const;
 		void SmoothingFunction();
+
+		std::future<void> ExportGDM();
 	public:
 		RenderSpecs m_RenderSpecs;
 	public:
@@ -297,15 +300,22 @@ namespace GP
 		Ref<Line> m_Line;
 	private:
 		std::priority_queue<VertexNode*, std::vector<VertexNode*>, Compare> m_MinHeap;
+		std::priority_queue<VertexNode*, std::vector<VertexNode*>, Compare> m_MinHeapExport;
+
 		std::vector<std::vector<float>> m_NxNGeodesicDistanceMatrix;
 		std::unordered_map<uint32_t, std::vector<uint32_t>> m_AdjacencyMap;
-		std::unordered_map<uint32_t, VertexNode> m_NodeTable;				
+		std::unordered_map<uint32_t, VertexNode> m_NodeTable;
+		std::unordered_map<uint32_t, VertexNode> m_NodeTableExport;
 		std::vector<VertexNode*> m_Vector;
+
+
 	private:
 		virtual void BuildVertices() override;
 		void SetupAdjacencyMap();
 		void SetupNodeTable();
+		void SetupNodeTableExport();
 		void ClearNodeTable();
+		void ClearNodeTableExport();
 
 	private:
 		int m_CoreSize;
