@@ -12,6 +12,7 @@
 #define GP_INFO(...)  ::GP::Logger::GetLogger()->info(__VA_ARGS__);
 #define GP_TRACE(...) ::GP::Logger::GetLogger()->trace(__VA_ARGS__);
 
+#define GP_FLUSH_TRACE() ::GP::Logger::GetLogger()->flush_on(spdlog::level::trace);
 
 namespace GP
 {

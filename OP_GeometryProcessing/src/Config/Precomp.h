@@ -22,6 +22,10 @@
 #include <filesystem>
 #include <fstream>
 
+#include <future>
+#include <thread>
+#include <atomic>
+
 #include <GeoProcess/System/CoreSystem/Logger.h>
 
 #ifdef OP_PLATFORM_WINDOWS

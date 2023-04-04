@@ -202,8 +202,8 @@ namespace GP
 	{
 		// clear buffers if they are already allocated
 
-		if (m_VertexArray.get())
-			delete m_VertexArray.get();
+		//if (m_VertexArray.get())
+			//delete m_VertexArray.get();
 
 
 		m_VertexArray = VertexArray::Create();

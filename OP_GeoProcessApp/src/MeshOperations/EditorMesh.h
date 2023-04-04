@@ -81,9 +81,7 @@ namespace GP
 			glm::vec3 v2 = vertexList[idx2];
 			glm::vec3 v3 = vertexList[idx3];
 
-			return 0.5 * std::abs(v1.x * (v2.y - v3.y) +
-								  v2.x * (v3.y - v1.y) +
-								  v3.x * (v1.y - v2.y));
+			return 0.5 * std::abs(glm::length(glm::cross(v2-v1, v3-v1)));
 		}
 
 		float CalculateCircumRadius(const std::vector<glm::vec3>& vertexList)
@@ -207,6 +205,7 @@ namespace GP
 			      Ref<Shader> singleColorShader,
 			      Ref<EnvironmentMap> envMap,
 				  uint32_t ditheringTex) const;
+		void SmoothingFunction();
 	public:
 		RenderSpecs m_RenderSpecs;
 	public:
@@ -283,7 +282,6 @@ namespace GP
 
 		void SetupFlatElements();
 		void SetupTriangles();
-		void SmoothingFunction();
 
 
 		void CalculateSmoothNormals();
@@ -308,5 +306,13 @@ namespace GP
 		void SetupAdjacencyMap();
 		void SetupNodeTable();
 		void ClearNodeTable();
+
+	private:
+		int m_CoreSize;
+		std::atomic<int> m_Count;
+		std::vector<std::future<void>> m_FutureVector;
+		std::mutex m_ProgressLock;
+		std::mutex m_Mutex;
+		std::condition_variable m_WaitResults;
 	};
 }

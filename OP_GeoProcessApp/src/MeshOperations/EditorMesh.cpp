@@ -107,6 +107,9 @@ namespace GP
 
 		m_Sphere = Icosphere::Create(0.15f, 1, true);
 		BuildVertices();
+
+		m_CoreSize = std::thread::hardware_concurrency();
+		m_Count = 0;
 	}
 
 	Ref<EditorMesh> EditorMesh::Create(Ref<Model> model)
@@ -258,7 +261,7 @@ namespace GP
 		for (uint32_t i = 0; i < m_Indices.size(); i++)
 			displacementMap[i] = glm::vec3(0.0f, 0.0f, 0.0f);
 
-		for (uint32_t i = 0; i < m_Indices.size(); i++)
+		for (uint32_t i = 0; i < m_Vertices.size(); i++)
 		{
 			glm::vec3 center = m_Vertices[i];
 
@@ -275,23 +278,24 @@ namespace GP
 			m_Vertices[i] += displacementMap[i];
 		}
 
-		// Recalculate the smooth normals
-		CalculateSmoothNormals();
 
-		// Recalculate flat elements
+		SetupTriangles();
 		SetupFlatElements();
-
-		// Setup tangent and bitangents again
+		SetupNodeTable();
+		SetupAdjacencyMap();
 		SetupTangentBitangents(false);
-
-		// Setup buffers
-		//SetupArrayBufferForColoring();
+		CalculateColors();
+		SetupArrayBufferForColoring(m_AGDArrayBuffer, m_AverageGeodesicDistanceColors);
+		SetupArrayBufferForColoring(m_GCArrayBuffer, m_GaussianCurvatureColors);
+		SetupArrayBufferForFlatColoring(m_QualityArrayBuffer, m_QualityColors);
+		SetupMeshForColoring(m_AGDVertexArray, m_AGDVertexBuffer,
+			m_AGDArrayBuffer, m_AGDIndexBuffer);
+		SetupMeshForColoring(m_GCVertexArray, m_GCVertexBuffer,
+			m_GCArrayBuffer, m_GCIndexBuffer);
+		SetupMeshForFlatColoring(m_QualityVertexArray, m_QualityVertexBuffer,
+			m_QualityArrayBuffer, m_QualityIndexBuffer);
 		SetupArrayBuffer();
 		SetupMesh();
-
-		// Coloring operations
-		SetupColoringBuffers();
-
 
 	}
 
@@ -342,21 +346,27 @@ namespace GP
 		std::vector<uint32_t> result;
 		std::set<uint32_t> sampleSet;
 
+		if (sampleCount > m_Vertices.size())
+			sampleCount = m_Vertices.size() - 1;
+
 		std::srand(std::time(0));
 		int lb = 0, ub = m_Vertices.size() - 1;
 		sampleSet.insert(rand() % (ub - lb + 1) + lb);
+
+		// sampleSet.insert(0);
 
 		for (uint32_t i = 0; i < sampleCount; i++)
 		{
 			uint32_t maxDistIndex;
 			float maxDistance = 0.0f;
+
 			for (uint32_t j = 0; j < m_Vertices.size(); j++)
 			{
-				if (sampleSet.find(j) != sampleSet.end())
+				if (sampleSet.find(j) == sampleSet.end())
 				{
 					for (auto sample : sampleSet)
 					{
-						float dist = GiveGeodesicDistanceBetweenVertices(sample, j);
+						float dist = GiveGeodesicDistanceBetweenVertices(sample, j); // glm::length(m_Vertices[sample] - m_Vertices[j]);
 
 						if (dist > maxDistance)
 						{
@@ -368,10 +378,15 @@ namespace GP
 				}
 			}
 
+			GP_TRACE("Finished: {0}", (float)i / (float)sampleCount);
+			GP_FLUSH_TRACE();
+
 			if(maxDistance != 0.0f)
 				sampleSet.insert(maxDistIndex);
 
 			maxDistance = 0.0f;
+
+
 		}
 
 		for (auto sample : sampleSet)
@@ -386,7 +401,7 @@ namespace GP
 		ClearNodeTable();
 		ComputeGeodesicDistancesMinHeap(idx1);
 		
-		return m_NodeTable[idx1].shortestPathEstimate;
+		return m_NodeTable[idx2].shortestPathEstimate;
 	}
 
 	// I don't think that I need tangents, bitangents and texture coordinates
@@ -776,7 +791,7 @@ namespace GP
 
 		m_AverageGeodesicDistanceColors.clear();
 
-		std::vector<uint32_t> randomIndexes = SampleNPoints(100);
+		std::vector<uint32_t> randomIndexes = SampleNPoints(5);
 
 
 		std::vector<float> avgDistances;
@@ -825,6 +840,8 @@ namespace GP
 		
 		for (uint32_t i = 0; i < m_Triangles.size(); i++)
 		{
+			if (i == 5)
+				std::cout << "i = 5" << std::endl;
 			float quality = m_Triangles[i].CalculateQuality(m_Vertices);
 			if (quality > maxQuality)
 				maxQuality = quality;
@@ -836,7 +853,7 @@ namespace GP
 
 		for (uint32_t i = 0; i < qualityVector.size(); i++)
 		{
-			m_QualityColors.push_back(GiveGradientColorBetweenRedAndBlue(qualityVector[i] / 100.0f));
+			m_QualityColors.push_back(GiveGradientColorBetweenRedAndBlue(qualityVector[i] / maxQuality));
 		}
 	}
 
@@ -890,8 +907,8 @@ namespace GP
 										  std::vector<ColoringVertex>& coloringArrayBuffer,
 										  Ref<IndexBuffer>& coloringIndexBuffer)
 	{
-		if (coloringVertexArray.get())
-			delete coloringVertexArray.get();
+		//if (coloringVertexArray.get())
+			// delete coloringVertexArray.get();
 
 		coloringVertexArray = VertexArray::Create();
 
@@ -914,8 +931,8 @@ namespace GP
 											  std::vector<ColoringVertex>& coloringArrayBuffer,
 											  Ref<IndexBuffer>& coloringIndexBuffer)
 	{
-		if (coloringVertexArray.get())
-			delete coloringVertexArray.get();
+		//if (coloringVertexArray.get())
+			//delete coloringVertexArray.get();
 
 		coloringVertexArray = VertexArray::Create();
 

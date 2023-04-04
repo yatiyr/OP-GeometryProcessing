@@ -274,6 +274,11 @@ namespace GP
 		}
 		ImGui::Checkbox("Show Line", MainRender::GetShowLine());
 
+		if (ImGui::Button("Smoothing Function"))
+		{
+			MainRender::GetEditorMesh()->SmoothingFunction();
+		}
+
 		ImGui::PopStyleVar();
 		ImGui::End();
 		ImGui::PopStyleVar();
