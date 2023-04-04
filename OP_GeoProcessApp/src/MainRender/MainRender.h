@@ -8,17 +8,6 @@
 
 namespace GP
 {
-	struct RenderSpecs
-	{
-		bool fill = true;
-		bool line = false;
-		glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		bool point;
-		glm::vec4 pointColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		
-		bool backfaceCulling = true;
-
-	};
 
 	struct MainRenderStats
 	{
@@ -44,8 +33,6 @@ namespace GP
 
 		static bool* GetHdr();
 		static void SetHdr(bool Hdr);
-
-		static RenderSpecs* GetRenderSpecs();
 
 		static void SetModelTransform(glm::mat4 model);
 		static glm::mat4& GetModelTransform();

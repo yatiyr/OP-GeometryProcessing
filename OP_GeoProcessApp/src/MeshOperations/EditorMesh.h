@@ -1,22 +1,54 @@
 #pragma once
 
-#include <GeoProcess/System/RenderSystem/VertexArray.h>
-
+#include <vector>
+#include <limits>
+#include <unordered_map>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <vector>
+
 #include <GeoProcess/System/Geometry/Mesh.h>
 #include <GeoProcess/System/Geometry/Model.h>
 #include <GeoProcess/System/Geometry/Line.h>
-
-#include <unordered_map>
-
-#include <limits>
+#include <GeoProcess/System/Geometry/Icosphere.h>
+#include <GeoProcess/System/RenderSystem/Shader.h>
+#include <GeoProcess/System/RenderSystem/VertexArray.h>
+#include <GeoProcess/System/RenderSystem/EnvironmentMap.h>
 
 namespace GP
 {
+
+	enum class RENDERMODE
+	{
+		AGD = 0,
+		FLAT = 1,
+		GC = 2,
+		QUALITY = 3,
+		SMOOTH = 4	
+	};
+
+	struct RenderSpecs
+	{
+
+		RENDERMODE renderMode = RENDERMODE::SMOOTH;
+
+
+		bool fill = true;
+		bool line = false;
+		float lineDisplacement = 0.5f;
+
+		glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		bool point;
+		glm::vec4 pointColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+		float roughness = 0.25f;
+		float metalness = 0.35f;
+		glm::vec3 albedo = glm::vec3(1.0, 1.0, 1.0);
+
+		bool backfaceCulling = true;
+
+	};
 
 	struct VertexNode
 	{
@@ -27,6 +59,7 @@ namespace GP
 		float shortestPathEstimate = std::numeric_limits<float>::max();
 	};
 
+
 	class Compare
 	{
 	public:
@@ -36,8 +69,91 @@ namespace GP
 		}
 	};
 
+	struct Triangle
+	{
+		uint32_t idx1;
+		uint32_t idx2;
+		uint32_t idx3;
 
-	// A general purpose 
+		float CalculateArea(const std::vector<glm::vec3>& vertexList)
+		{
+			glm::vec3 v1 = vertexList[idx1];
+			glm::vec3 v2 = vertexList[idx2];
+			glm::vec3 v3 = vertexList[idx3];
+
+			return 0.5 * std::abs(v1.x * (v2.y - v3.y) +
+								  v2.x * (v3.y - v1.y) +
+								  v3.x * (v1.y - v2.y));
+		}
+
+		float CalculateCircumRadius(const std::vector<glm::vec3>& vertexList)
+		{
+			float area = CalculateArea(vertexList);
+
+			glm::vec3 v1 = vertexList[idx1];
+			glm::vec3 v2 = vertexList[idx2];
+			glm::vec3 v3 = vertexList[idx3];
+
+			float le1 = glm::length(v1 - v2);
+			float le2 = glm::length(v1 - v3);
+			float le3 = glm::length(v2 - v3);
+
+			return (le1 * le2 * le3) / (4 * area);
+		}
+
+		float CalculateQuality(const std::vector<glm::vec3>& vertexList)
+		{
+			float circumRadius = CalculateCircumRadius(vertexList);
+
+			glm::vec3 v1 = vertexList[idx1];
+			glm::vec3 v2 = vertexList[idx2];
+			glm::vec3 v3 = vertexList[idx3];
+
+			float le1 = glm::length(v1 - v2);
+			float le2 = glm::length(v1 - v3);
+			float le3 = glm::length(v2 - v3);
+
+			float minEdge = std::min(le1, std::min(le2, le3));
+
+			return circumRadius / minEdge;
+		}
+
+		glm::vec3 GiveNormal(const std::vector<glm::vec3>& vertexList)
+		{
+
+			const float EPSILON = 0.000001f;
+			glm::vec3 normal(0.0f);
+
+			glm::vec3 v1 = vertexList[idx1];
+			glm::vec3 v2 = vertexList[idx2];
+			glm::vec3 v3 = vertexList[idx3];
+			
+
+			glm::vec3 e1 = v2 - v1;
+			glm::vec3 e2 = v3 - v1;
+
+			normal = glm::cross(e1, e2);
+			if (glm::length(normal) > EPSILON)
+			{
+				normal = glm::normalize(normal);
+				return normal;
+			}
+
+			return glm::vec3(0.0f);
+		}
+	};
+
+
+	// This struct will be used for coloring
+	struct ColoringVertex
+	{
+		glm::vec3 Pos;
+		glm::vec3 Normal;
+		glm::vec3 Color;
+	};
+
+
+	// This mesh is for assignments for Digital Geometry Course
 	class EditorMesh : public Mesh
 	{
 	public:
@@ -47,17 +163,24 @@ namespace GP
 
 		Ref<Mesh> GetMainMesh();
 		Ref<Line> GetLine();
+		Ref<Icosphere> GetSphere();
+
 		glm::vec4 m_LineColor = {1.0f, 0.2f, 0.4f, 1.0f};
 
 		// 0 -> min heap
 		// 1 -> vector (array)
 		int m_GeodesicDistanceCalcMethod = 0;
 		std::string GiveCalcMethodName();
+		std::string GiveRenderMethodName();
 
 		// These points are for visualizing geodesic distance
 		// between two vertices
 		int m_StartIndex = -1;
 		int m_EndIndex = -1;
+
+		// Make two spheres maybe?
+		glm::vec3 m_StartPoint;
+		glm::vec3 m_EndPoint;
 
 		bool m_ShowLine = false;
 
@@ -66,30 +189,124 @@ namespace GP
 
 		void SetupLineVertices();
 
-
-		
-	private:
-		ModelMesh m_MainMesh;
-		Ref<Line> m_Line;
-
-		std::unordered_map<uint32_t, std::vector<uint32_t>> m_AdjacencyMap;
-		std::unordered_map<uint32_t, VertexNode> m_NodeTable;
-		std::vector<std::vector<float>> m_NxNGeodesicDistanceMatrix;
-		std::priority_queue<VertexNode*, std::vector<VertexNode*>, Compare> m_MinHeap;
-		std::vector<VertexNode*> m_Vector;
-		virtual void BuildVertices() override;
-
-		void SetupAdjacencyMap();
-		void SetupNodeTable();
-		void ClearNodeTable();
-		
-
-
+		void ExportNxNGeodesicDistanceMatrix();
+		void ComputeNxNGeodesicDistanceMatrix();
 		void ComputeGeodesicDistances(uint32_t index);
 		void ComputeGeodesicDistancesMinHeap(uint32_t index);
 		void ComputeGeodesicDistancesVector(uint32_t index);
 
-		void ComputeNxNGeodesicDistanceMatrix();
-		void ExportNxNGeodesicDistanceMatrix();
+
+	public:
+		Ref<Shader> m_MainShader;
+		Ref<Shader> m_ColorShader;
+		Ref<Shader> m_SingleColorShader;
+
+	public:
+		void Draw(Ref<Shader> mainShader,
+			      Ref<Shader> colorShader,
+			      Ref<Shader> singleColorShader,
+			      Ref<EnvironmentMap> envMap,
+				  uint32_t ditheringTex) const;
+	public:
+		RenderSpecs m_RenderSpecs;
+	public:
+
+		std::vector<glm::vec3> m_GaussianCurvatureColors;
+		std::vector<glm::vec3> m_AverageGeodesicDistanceColors;
+
+		// This is going to be flat
+		std::vector<glm::vec3> m_QualityColors;
+
+	private:
+		void CalculateAGDColors();
+		void CalculateGaussianCurvatureColors();
+		void CalculateQualityColors();
+
+		void CalculateColors();
+
+		void SetupColoringBuffers();
+	private:
+		bool isSmooth = false;
+
+	private:
+		std::vector<Triangle> m_Triangles;
+
+	private:
+
+
+		// VBO's and VBA's for each coloring mode have separated
+		// They will only be computed only in the beginning and 
+		// when we use the smooth function
+		std::vector<ColoringVertex> m_AGDArrayBuffer;
+		Ref<VertexArray> m_AGDVertexArray;
+		Ref<VertexBuffer> m_AGDVertexBuffer;
+		Ref<IndexBuffer> m_AGDIndexBuffer;
+
+		std::vector<ColoringVertex> m_GCArrayBuffer;
+		Ref<VertexArray> m_GCVertexArray;
+		Ref<VertexBuffer> m_GCVertexBuffer;
+		Ref<IndexBuffer> m_GCIndexBuffer;
+
+		std::vector<ColoringVertex> m_QualityArrayBuffer;
+		Ref<VertexArray> m_QualityVertexArray;
+		Ref<VertexBuffer> m_QualityVertexBuffer;
+		Ref<IndexBuffer> m_QualityIndexBuffer;
+
+	private:
+		std::vector<glm::vec3> m_FlatShadeVertices;
+		std::vector<glm::vec3> m_FlatShadeNormals;
+		std::vector<glm::vec3> m_FlatShadeTangents;
+		std::vector<glm::vec3> m_FlatShadeBitangents;
+		std::vector<glm::vec2> m_FlatShadeTexCoords;
+
+		std::vector<uint32_t> m_FlatShadeIndices;
+
+	private:
+		float m_SmootingFactor = 0.1f;
+	private:
+		void SetupArrayBufferForColoring(std::vector<ColoringVertex>& coloringArrayBuffer,
+			                             const std::vector<glm::vec3>& colors);
+		void SetupArrayBufferForFlatColoring(std::vector<ColoringVertex>& coloringArrayBuffer,
+										  const std::vector<glm::vec3>& colors);
+
+
+		void SetupMeshForColoring(Ref<VertexArray>& coloringVertexArray,
+			                      Ref<VertexBuffer>& coloringVertexBuffer,
+			                      std::vector<ColoringVertex>& coloringArrayBuffer,
+			                      Ref<IndexBuffer>& coloringIndexBuffer);
+
+		void SetupMeshForFlatColoring(Ref<VertexArray>& coloringVertexArray,
+									  Ref<VertexBuffer>& coloringVertexBuffer,
+									  std::vector<ColoringVertex>& coloringArrayBuffer,
+									  Ref<IndexBuffer>& coloringIndexBuffer);
+
+
+		void SetupFlatElements();
+		void SetupTriangles();
+		void SmoothingFunction();
+
+
+		void CalculateSmoothNormals();
+
+		std::vector<Triangle> GiveTrianglesWithVertex(uint32_t index);
+
+		std::vector<uint32_t> SampleNPoints(uint32_t sampleCount);
+
+		float GiveGeodesicDistanceBetweenVertices(uint32_t idx1, uint32_t idx2);
+	private:
+		Ref<Icosphere> m_Sphere;
+		ModelMesh m_MainMesh;
+		Ref<Line> m_Line;
+	private:
+		std::priority_queue<VertexNode*, std::vector<VertexNode*>, Compare> m_MinHeap;
+		std::vector<std::vector<float>> m_NxNGeodesicDistanceMatrix;
+		std::unordered_map<uint32_t, std::vector<uint32_t>> m_AdjacencyMap;
+		std::unordered_map<uint32_t, VertexNode> m_NodeTable;				
+		std::vector<VertexNode*> m_Vector;
+	private:
+		virtual void BuildVertices() override;
+		void SetupAdjacencyMap();
+		void SetupNodeTable();
+		void ClearNodeTable();
 	};
 }

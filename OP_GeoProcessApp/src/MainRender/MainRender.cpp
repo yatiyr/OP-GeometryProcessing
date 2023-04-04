@@ -39,8 +39,6 @@ namespace GP
 
 	struct RenderData
 	{
-		// ------------ Render Specs --------------- //
-		RenderSpecs renderSpecs;
 		// ------------ Render Constant ------------ //
 		float Epsilon = 0.00000001;
 
@@ -71,10 +69,12 @@ namespace GP
 
 		// ------- Shaders -------- //
 		Ref<Shader> mainShader;
+		Ref<Shader> colorShader;
 		Ref<Shader> postProcessingShader;
 		Ref<Shader> triangleIdShader;
 		Ref<Shader> gridShader;
 		Ref<Shader> flatColorRenderShader;
+
 
 		// ------ Meshes ------ //
 		Ref<Cube> cube;
@@ -86,9 +86,6 @@ namespace GP
 		Ref<Model> model;
 		Ref<EditorMesh> editorMesh;
 		glm::mat4 modelTransform = glm::mat4(1.0f);
-		float u_Roughness = 0.25f;
-		float u_Metalness = 0.35f;
-		glm::vec3 u_Albedo = glm::vec3(1.0, 1.0, 1.0);
 
 
 		// ----- Viewport Settings ----- //
@@ -125,7 +122,7 @@ namespace GP
 		s_RenderData.cube = Cube::Create();
 
 		// Initialize Model
-		s_RenderData.model = ResourceManager::GetModel("man0");
+		s_RenderData.model = ResourceManager::GetModel("neptune");
 		s_RenderData.editorMesh = EditorMesh::Create(s_RenderData.model);
 
 		// Initialize main render settings
@@ -140,6 +137,7 @@ namespace GP
 
 		// Get Shaders
 		s_RenderData.mainShader = ResourceManager::GetShader("Main.glsl");
+		s_RenderData.colorShader = ResourceManager::GetShader("ColorShader.glsl");
 		s_RenderData.postProcessingShader = ResourceManager::GetShader("PostProcessing.glsl");
 		s_RenderData.triangleIdShader = ResourceManager::GetShader("MousePicking.glsl");
 		s_RenderData.gridShader = ResourceManager::GetShader("Grid.glsl");
@@ -242,11 +240,6 @@ namespace GP
 		s_RenderData.ToneMappingSettingsBuffer.hdr = Hdr;
 	}
 
-	RenderSpecs* MainRender::GetRenderSpecs()
-	{
-		return &s_RenderData.renderSpecs;
-	}
-
 	void MainRender::SetModelTransform(glm::mat4 t)
 	{
 		s_RenderData.modelTransform = t;
@@ -312,64 +305,16 @@ namespace GP
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 				glStencilMask(0x00);
 
+				uint32_t ditheringTex = ResourceManager::GetTexture("BayerMatrixDithering")->GetRendererID();
+				s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
+				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
 
-				RenderSpecs spc = s_RenderData.renderSpecs;
+				s_RenderData.editorMesh->Draw(s_RenderData.mainShader,
+											  s_RenderData.colorShader,
+											  s_RenderData.flatColorRenderShader,
+											  s_RenderData.environmentMap,
+											  ditheringTex);
 
-				if (spc.fill)
-				{
-					s_RenderData.mainShader->Bind();
-
-					s_RenderData.mainShader->SetFloat(0, s_RenderData.u_Roughness);
-					s_RenderData.mainShader->SetFloat(1, s_RenderData.u_Metalness);
-					s_RenderData.mainShader->SetFloat3(2, s_RenderData.u_Albedo);
-
-					// -------- DRAW SCENE --------- //
-					s_RenderData.environmentMap->BindIrradianceMap(0);
-					s_RenderData.environmentMap->BindPrefilterMap(1);
-					s_RenderData.environmentMap->BindBrdfLUT(2);
-
-					uint32_t ditheringTex = ResourceManager::GetTexture("BayerMatrixDithering")->GetRendererID();
-					glBindTextureUnit(3, ditheringTex);
-
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
-					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
-					s_RenderData.editorMesh->Draw();
-				}
-
-				if (spc.line)
-				{
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-					s_RenderData.flatColorRenderShader->Bind();
-					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
-					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
-					s_RenderData.flatColorRenderShader->SetFloat4(0, spc.lineColor);
-					s_RenderData.editorMesh->Draw();
-				}
-
-				if (spc.point)
-				{
-					glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-					s_RenderData.flatColorRenderShader->Bind();
-					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
-					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
-					s_RenderData.flatColorRenderShader->SetFloat4(0, spc.pointColor);
-					s_RenderData.editorMesh->Draw();
-				}
-
-				if (s_RenderData.editorMesh->m_ShowLine)
-				{
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-					glLineWidth(7.0f);
-					s_RenderData.flatColorRenderShader->Bind();
-					s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
-					s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
-					s_RenderData.flatColorRenderShader->SetFloat4(0, s_RenderData.editorMesh->m_LineColor);
-					s_RenderData.editorMesh->GetLine()->Draw();
-				}
-
-				glLineWidth(1.0f);
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				s_RenderData.environmentMap->RenderSkybox();
 			}
 		);

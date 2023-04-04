@@ -36,14 +36,15 @@ namespace GP
 			m_LineArrayBuffer.push_back(vert);
 		}
 
-		//if (m_VertexArray.get())
-			//delete m_VertexArray.get();
+		// Memory leak
+		// if (m_VertexArray.get())
+		//	 delete m_VertexArray.get();
 
 		m_VertexArray = VertexArray::Create();
 		m_VertexBuffer = VertexBuffer::Create(&m_LineArrayBuffer[0], m_LineArrayBuffer.size() * sizeof(LineVertex));
 		m_VertexBuffer->SetLayout(
 			{
-				{ ShaderDataType::Float3, "a_Position"    },
+				{ ShaderDataType::Float3, "a_Position" },
 			}
 		);
 

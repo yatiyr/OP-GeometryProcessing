@@ -200,7 +200,7 @@ namespace GP
 		ImGui::Begin("Properties", nullptr, ImGuiWindowFlags_NoTitleBar);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
-		RenderSpecs* spc = MainRender::GetRenderSpecs();
+		RenderSpecs* spc = &MainRender::GetEditorMesh()->m_RenderSpecs;
 
 		ImGui::Checkbox("Fill", &spc->fill);
 		ImGui::Checkbox("Line", &spc->line);
@@ -215,16 +215,16 @@ namespace GP
 				glDisable(GL_CULL_FACE);
 		}
 
-		int currentSelectedID = MainRender::GetEditorMesh()->m_GeodesicDistanceCalcMethod;
+		int currentSelectedIDMethod = MainRender::GetEditorMesh()->m_GeodesicDistanceCalcMethod;
 		std::vector<std::string> calcMethodNames = { "Min Heap", "Array" };
 		if (ImGui::BeginCombo("CalcMethod", MainRender::GetEditorMesh()->GiveCalcMethodName().c_str(), ImGuiComboFlags_PopupAlignLeft))
 		{
 			for (int i = 0; i < calcMethodNames.size(); i++)
 			{
-				const bool isSelected = (currentSelectedID == i);
+				const bool isSelected = (currentSelectedIDMethod == i);
 				if (ImGui::Selectable(calcMethodNames[i].c_str(), isSelected))
 				{
-					currentSelectedID = i;
+					currentSelectedIDMethod = i;
 					MainRender::GetEditorMesh()->m_GeodesicDistanceCalcMethod = i;
 				}
 
@@ -235,6 +235,29 @@ namespace GP
 			}
 			ImGui::EndCombo();
 		}
+
+		int currentSelectedIDRenderMode = (int)MainRender::GetEditorMesh()->m_RenderSpecs.renderMode;
+		std::vector<std::string> renderModeNames = { "AGD", "Flat", "GC", "Triangle Quality", "Smooth"};
+		if (ImGui::BeginCombo("Render Mode", MainRender::GetEditorMesh()->GiveRenderMethodName().c_str(), ImGuiComboFlags_PopupAlignLeft))
+		{
+			for (int i = 0; i < renderModeNames.size(); i++)
+			{
+				const bool isSelected = (currentSelectedIDRenderMode == i);
+				if (ImGui::Selectable(renderModeNames[i].c_str(), isSelected))
+				{
+					currentSelectedIDRenderMode = i;
+					MainRender::GetEditorMesh()->m_RenderSpecs.renderMode = (RENDERMODE)i;
+				}
+
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+
 		ImGui::Text("Distance Calc Time %f", MainRender::GetEditorMesh()->m_CalcTime);
 		if (ImGui::InputInt("StartIndex", MainRender::GetGeoDistStartIndex()))
 		{
@@ -244,7 +267,11 @@ namespace GP
 		{
 			MainRender::GetEditorMesh()->SetupLineVertices();
 		};
-		ImGui::ColorEdit4("Line Color", glm::value_ptr(MainRender::GetEditorMesh()->m_LineColor));
+		ImGui::ColorEdit4("DistLine Color", glm::value_ptr(MainRender::GetEditorMesh()->m_LineColor));
+		if (ImGui::DragFloat("Line Displacement", &MainRender::GetEditorMesh()->m_RenderSpecs.lineDisplacement, 0.1f, 0.0f))
+		{
+			MainRender::GetEditorMesh()->SetupLineVertices();
+		}
 		ImGui::Checkbox("Show Line", MainRender::GetShowLine());
 
 		ImGui::PopStyleVar();

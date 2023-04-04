@@ -1,15 +1,14 @@
 #pragma once
 
-#include <GeoProcess/System/RenderSystem/VertexArray.h>
-
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <vector>
+
+
+#include <GeoProcess/System/RenderSystem/VertexArray.h>
 #include <GeoProcess/System/Geometry/Mesh.h>
-
-
 
 namespace GP
 {
