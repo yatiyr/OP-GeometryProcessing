@@ -122,7 +122,7 @@ namespace GP
 		s_RenderData.cube = Cube::Create();
 
 		// Initialize Model
-		s_RenderData.model = ResourceManager::GetModel("man0");
+		s_RenderData.model = ResourceManager::GetModel("centaur");
 		s_RenderData.editorMesh = EditorMesh::Create(s_RenderData.model);
 
 		// Initialize main render settings

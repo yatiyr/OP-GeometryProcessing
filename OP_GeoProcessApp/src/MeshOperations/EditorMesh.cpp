@@ -105,7 +105,7 @@ namespace GP
 		std::vector<glm::vec3> vertices = { glm::vec3(0.0f, 0.0f, 0.0f) };
 		m_Line = Line::Create(vertices);
 
-		m_Sphere = Icosphere::Create(0.5f, 1, false);
+		m_Sphere = Icosphere::Create(0.8f, 1, false);
 		BuildVertices();
 
 		m_CoreSize = std::thread::hardware_concurrency();
@@ -363,9 +363,9 @@ namespace GP
 
 		std::srand(std::time(0));
 		int lb = 0, ub = m_Vertices.size() - 1;
-		//sampleSet.insert(rand() % (ub - lb + 1) + lb);
+		sampleSet.insert(rand() % (ub - lb + 1) + lb);
 
-		sampleSet.insert(0);
+		//sampleSet.insert(0);
 
 		for (uint32_t i = 0; i < sampleCount; i++)
 		{
@@ -383,7 +383,7 @@ namespace GP
 				{
 					for (auto sample : sampleSet)
 					{
-						float dist =  GiveGeodesicDistanceBetweenVertices(sample, j); //glm::length(m_Vertices[sample] - m_Vertices[j]); //  // 
+						float dist =  glm::length(m_Vertices[sample] - m_Vertices[j]); //  //  GiveGeodesicDistanceBetweenVertices(sample, j); //
 
 						if (dist < closest)
 						{
@@ -892,7 +892,7 @@ namespace GP
 
 		m_AverageGeodesicDistanceColors.clear();
 		m_SamplePoints.clear();
-		m_SamplePoints = SampleNPoints(2);
+		m_SamplePoints = SampleNPoints(50);
 
 
 		std::vector<float> avgDistances;
