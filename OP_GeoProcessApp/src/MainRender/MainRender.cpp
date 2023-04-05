@@ -122,7 +122,7 @@ namespace GP
 		s_RenderData.cube = Cube::Create();
 
 		// Initialize Model
-		s_RenderData.model = ResourceManager::GetModel("man0");
+		s_RenderData.model = ResourceManager::GetModel("centaur");
 		s_RenderData.editorMesh = EditorMesh::Create(s_RenderData.model);
 
 		// Initialize main render settings
@@ -314,6 +314,21 @@ namespace GP
 											  s_RenderData.flatColorRenderShader,
 											  s_RenderData.environmentMap,
 											  ditheringTex);
+
+				if (s_RenderData.editorMesh->m_RenderSpecs.showSamples)
+				{
+					for (auto& e : s_RenderData.editorMesh->m_SamplePoints)
+					{
+						glm::mat4 transform = glm::mat4(1.0f);
+						glm::vec3 vert = s_RenderData.editorMesh->GetVertex(e);
+						s_RenderData.TransformBuffer.Model = glm::translate(transform, vert);
+						s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform * s_RenderData.TransformBuffer.Model;
+						s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
+						s_RenderData.mainShader->Bind();
+						s_RenderData.editorMesh->GetSphere()->Draw();
+					}
+				}
+
 
 				s_RenderData.environmentMap->RenderSkybox();
 			}

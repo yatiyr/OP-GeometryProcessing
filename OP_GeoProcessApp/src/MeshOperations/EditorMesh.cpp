@@ -105,7 +105,7 @@ namespace GP
 		std::vector<glm::vec3> vertices = { glm::vec3(0.0f, 0.0f, 0.0f) };
 		m_Line = Line::Create(vertices);
 
-		m_Sphere = Icosphere::Create(0.15f, 1, true);
+		m_Sphere = Icosphere::Create(0.01f, 1, false);
 		BuildVertices();
 
 		m_CoreSize = std::thread::hardware_concurrency();
@@ -372,18 +372,27 @@ namespace GP
 			uint32_t maxDistIndex;
 			float maxDistance = 0.0f;
 
+			uint32_t closestDistIndex;
+			float closest = std::numeric_limits<float>::max();
+
 			for (uint32_t j = 0; j < m_Vertices.size(); j++)
 			{
 				if (sampleSet.find(j) == sampleSet.end())
 				{
 					for (auto sample : sampleSet)
 					{
-						float dist = GiveGeodesicDistanceBetweenVertices(sample, j); // glm::length(m_Vertices[sample] - m_Vertices[j]);
+						float dist =  glm::length(m_Vertices[sample] - m_Vertices[j]); //  // GiveGeodesicDistanceBetweenVertices(sample, j); //
 
-						if (dist > maxDistance)
+						if (dist < closest)
+						{
+							closestDistIndex = sample;
+							closest = dist;
+						}
+
+						if (closest > maxDistance)
 						{
 							maxDistIndex = j;
-							maxDistance = dist;
+							maxDistance = closest;
 						}
 					}
 					
@@ -414,6 +423,11 @@ namespace GP
 		ComputeGeodesicDistancesMinHeap(idx1);
 		
 		return m_NodeTable[idx2].shortestPathEstimate;
+	}
+
+	glm::vec3 EditorMesh::GetVertex(uint32_t id)
+	{
+		return m_Vertices[id];
 	}
 
 	// I don't think that I need tangents, bitangents and texture coordinates
@@ -807,6 +821,7 @@ namespace GP
 
 		glLineWidth(1.0f);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 	}
 
 	void EditorMesh::CalculateGaussianCurvatureColors()
@@ -873,18 +888,18 @@ namespace GP
 	{
 
 		m_AverageGeodesicDistanceColors.clear();
-
-		std::vector<uint32_t> randomIndexes = SampleNPoints(5);
+		m_SamplePoints.clear();
+		m_SamplePoints = SampleNPoints(500);
 
 
 		std::vector<float> avgDistances;
 		avgDistances.resize(m_Vertices.size(), 0.0f);
 
 
-		for (uint32_t i = 0; i < randomIndexes.size(); i++)
+		for (uint32_t i = 0; i < m_SamplePoints.size(); i++)
 		{
 			ClearNodeTable();
-			ComputeGeodesicDistances(randomIndexes[i]);
+			ComputeGeodesicDistances(m_SamplePoints[i]);
 
 			float distanceSum = 0.0f;
 			float maxDistance = 0.0f;
@@ -898,7 +913,7 @@ namespace GP
 		float maxDistance = 0.0f;
 		for (uint32_t i = 0; i < avgDistances.size(); i++)
 		{
-			avgDistances[i] /= 100.0f;
+			avgDistances[i] /= m_SamplePoints.size();
 
 			if (avgDistances[i] > maxDistance)
 				maxDistance = avgDistances[i];

@@ -273,7 +273,7 @@ namespace GP
 			MainRender::GetEditorMesh()->SetupLineVertices();
 		}
 		ImGui::Checkbox("Show Line", MainRender::GetShowLine());
-
+		ImGui::Checkbox("Show Samples", &MainRender::GetEditorMesh()->m_RenderSpecs.showSamples);
 		if (ImGui::Button("Smoothing Function"))
 		{
 			MainRender::GetEditorMesh()->SmoothingFunction();
@@ -336,7 +336,6 @@ namespace GP
 		if (e.GetRepeatCount() > 0)
 			return false;
 
-		GP_TRACE("Key: {0} has been pressed.", e.GetKeyCode());
 		switch (e.GetKeyCode())
 		{
 			// Gizmo stuff

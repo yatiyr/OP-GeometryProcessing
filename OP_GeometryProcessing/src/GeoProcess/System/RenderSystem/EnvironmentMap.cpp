@@ -173,7 +173,7 @@ namespace GP
 
 	void EnvironmentMap::FreeMemory()
 	{
-		if (m_CubemapCaptureRenderPass.get())
+		/*if (m_CubemapCaptureRenderPass.get())
 		{
 			m_CubemapCaptureRenderPass->FreeFramebuffer();
 			m_CubemapCaptureRenderPass.reset();
@@ -192,7 +192,7 @@ namespace GP
 		{
 			m_BrdfLUTGenerationPass->FreeFramebuffer();
 			m_BrdfLUTGenerationPass.reset();
-		}
+		} */
 
 	}
 
@@ -207,12 +207,12 @@ namespace GP
 		m_CubemapCaptureRenderPass = RenderPass::Create(std::string("Cubemap Capture Pass"),
 			cubemapCFSpec,
 			m_CubemapCaptureShader);
+
 		// -------------- IRRADIANCE MAP GENERATION PASS ------------------ //
 		FramebufferSpecification irradianceCFSpec;
 		irradianceCFSpec.Attachments = { FramebufferTextureFormat::CUBEMAP, FramebufferTextureFormat::CUBEMAP_DEPTH };
 		irradianceCFSpec.Width = 32;
 		irradianceCFSpec.Height = 32;
-
 		m_IrradianceMapGenerationRenderPass = RenderPass::Create(std::string("Irradiance Map Generation Pass"),
 			irradianceCFSpec,
 			m_IrradianceMapGenerationShader);
@@ -225,6 +225,8 @@ namespace GP
 		m_PrefilterGenerationRenderPass = RenderPass::Create(std::string("Prefilter Generation Pass"),
 			prefilterFSpec,
 			m_PrefilterGenerationShader);
+
+
 		// -------------- BRDF LUT GENERATION PASS -------------------------- //
 		FramebufferSpecification brdfLUTFSpec;
 		brdfLUTFSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };

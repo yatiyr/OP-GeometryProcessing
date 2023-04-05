@@ -47,6 +47,7 @@ namespace GP
 		glm::vec3 albedo = glm::vec3(1.0, 1.0, 1.0);
 
 		bool backfaceCulling = true;
+		bool showSamples = false;
 
 	};
 
@@ -219,6 +220,9 @@ namespace GP
 		// This is going to be flat
 		std::vector<glm::vec3> m_QualityColors;
 
+		std::vector<uint32_t> m_SamplePoints;
+
+		glm::vec3 GetVertex(uint32_t id);
 	private:
 		void CalculateAGDColors();
 		void CalculateGaussianCurvatureColors();

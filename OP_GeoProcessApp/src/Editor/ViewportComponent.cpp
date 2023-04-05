@@ -37,7 +37,7 @@ namespace GP
 		{
 			if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(KeyCode::LeftAlt))
 			{
-				GP_TRACE("Mouse button pressed.");
+				// GP_TRACE("Mouse button pressed.");
 			}
 
 		}

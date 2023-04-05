@@ -240,7 +240,6 @@ namespace GP
 	OpenGLFramebuffer::OpenGLFramebuffer(const FramebufferSpecification& spec)
 		: m_Specification(spec)
 	{
-
 		for (auto spec : m_Specification.Attachments.Attachments)
 		{
 			if (!OpenGLFramebufferUtils::IsDepthFormat(spec.TextureFormat))

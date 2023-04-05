@@ -52,7 +52,7 @@ namespace GP
 		unsigned int AddSubVertexAttributes(const glm::vec3& v, const glm::vec3& n, const glm::vec2& t);
 
 		int m_Subdivision;
-		int m_Radius;
+		float m_Radius;
 		std::map<std::pair<float, float>, unsigned int> m_SharedIndices;
 
 	};
