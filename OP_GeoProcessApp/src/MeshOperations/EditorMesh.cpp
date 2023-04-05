@@ -105,7 +105,7 @@ namespace GP
 		std::vector<glm::vec3> vertices = { glm::vec3(0.0f, 0.0f, 0.0f) };
 		m_Line = Line::Create(vertices);
 
-		m_Sphere = Icosphere::Create(0.01f, 1, false);
+		m_Sphere = Icosphere::Create(0.5f, 1, false);
 		BuildVertices();
 
 		m_CoreSize = std::thread::hardware_concurrency();
@@ -363,25 +363,27 @@ namespace GP
 
 		std::srand(std::time(0));
 		int lb = 0, ub = m_Vertices.size() - 1;
-		sampleSet.insert(rand() % (ub - lb + 1) + lb);
+		//sampleSet.insert(rand() % (ub - lb + 1) + lb);
 
-		// sampleSet.insert(0);
+		sampleSet.insert(0);
 
 		for (uint32_t i = 0; i < sampleCount; i++)
 		{
 			uint32_t maxDistIndex;
 			float maxDistance = 0.0f;
 
-			uint32_t closestDistIndex;
-			float closest = std::numeric_limits<float>::max();
 
 			for (uint32_t j = 0; j < m_Vertices.size(); j++)
 			{
+
+				uint32_t closestDistIndex;
+				float closest = std::numeric_limits<float>::max();
+
 				if (sampleSet.find(j) == sampleSet.end())
 				{
 					for (auto sample : sampleSet)
 					{
-						float dist =  glm::length(m_Vertices[sample] - m_Vertices[j]); //  // GiveGeodesicDistanceBetweenVertices(sample, j); //
+						float dist =  GiveGeodesicDistanceBetweenVertices(sample, j); //glm::length(m_Vertices[sample] - m_Vertices[j]); //  // 
 
 						if (dist < closest)
 						{
@@ -389,11 +391,12 @@ namespace GP
 							closest = dist;
 						}
 
-						if (closest > maxDistance)
-						{
-							maxDistIndex = j;
-							maxDistance = closest;
-						}
+					}
+
+					if (closest > maxDistance)
+					{
+						maxDistIndex = j;
+						maxDistance = closest;
 					}
 					
 				}
@@ -889,7 +892,7 @@ namespace GP
 
 		m_AverageGeodesicDistanceColors.clear();
 		m_SamplePoints.clear();
-		m_SamplePoints = SampleNPoints(500);
+		m_SamplePoints = SampleNPoints(2);
 
 
 		std::vector<float> avgDistances;
