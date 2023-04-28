@@ -34,6 +34,7 @@ namespace GP
 		std::unordered_map<uint32_t, Ref<Model>> Models;
 
 		std::unordered_map<uint32_t, Ref<EnvironmentMap>> EnvironmentMaps;
+		std::unordered_map<uint32_t, Ref<ModelDatabase>> ModelDatabases;
 		std::unordered_map<uint32_t, Ref<Texture>> Textures;
 
 		std::unordered_map<uint32_t, Ref<Shader>> Shaders;
@@ -138,6 +139,12 @@ namespace GP
 		return s_ResourceManagerData.EnvironmentMaps[modelHandle];
 	}
 
+	Ref<ModelDatabase> ResourceManager::GetModelDatabase(std::string name)
+	{
+		uint32_t modelDBHandle = s_ResourceManagerData.StringLookupTable[name];
+		return s_ResourceManagerData.ModelDatabases[modelDBHandle];
+	}
+
 	Ref<Shader> ResourceManager::GetShader(std::string name)
 	{
 		uint32_t shaderHandle = s_ResourceManagerData.StringLookupTable[name];
@@ -199,6 +206,46 @@ namespace GP
 
 		GP_WARN("\tModels have been loaded")
 			return 0;
+	}
+
+	int ResourceManager::LoadModelDatabases(std::filesystem::path modelDatabasePath)
+	{
+		GP_WARN("Model Databases are loading");
+
+		try
+		{
+			// Iterate database directories
+			for (const auto& entry : std::filesystem::directory_iterator(modelDatabasePath))
+			{
+				Ref<ModelDatabase> db = ModelDatabase::Create(entry.path().filename().string());
+
+				GP_TRACE("{0}", entry.path().filename());
+				// Iterate database meshes
+				for (const auto& fileEntry : std::filesystem::directory_iterator(entry.path()))
+				{
+					GP_TRACE("\t{0}", fileEntry.path().filename());
+					std::filesystem::path fileEntryPath = fileEntry.path();
+					Assimp::Importer import;
+					const aiScene* scene = import.ReadFile(fileEntryPath.string(), aiProcessPreset_TargetRealtime_Fast); //aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_DropNormals);
+
+					db->AddModel(scene->mRootNode, scene);
+				}
+			
+				uint32_t id = Allocate(entry.path().filename().string());
+				s_ResourceManagerData.ModelDatabases[id] = db;
+
+				GP_TRACE("Mesh count of Database {0} is {1}", entry.path().filename(), db->GetMeshCount());
+				
+			}
+		}
+		catch (const std::exception&)
+		{
+			GP_ERROR("\tFailed to load databases");
+			return 1;
+		}
+
+
+		return 0;
 	}
 
 	int ResourceManager::RegisterModelResources()
@@ -344,6 +391,7 @@ namespace GP
 
 		std::filesystem::path assetPath = rootFilePath / "assets";
 		std::filesystem::path modelPath = assetPath / "models";
+		std::filesystem::path modelDatabasePath = assetPath / "modelDatabase";
 
 		std::filesystem::path shaderPath = assetPath / "shaders";
 		std::filesystem::path shaderSrcPath = shaderPath / "src";
@@ -360,6 +408,7 @@ namespace GP
 
 
 		ResourceManager::LoadModels(modelPath);
+		ResourceManager::LoadModelDatabases(modelDatabasePath);
 
 		// Create generic resources
 			// GENERIC MESHES

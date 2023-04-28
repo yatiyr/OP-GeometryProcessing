@@ -8,6 +8,8 @@
 
 #include <GeoProcess/System/RenderSystem/EnvironmentMap.h>
 
+#include <GeoProcess/System/Geometry/ModelDatabase.h>
+
 namespace GP
 {
 
@@ -43,8 +45,10 @@ namespace GP
 		static Ref<Model> GetModel(std::string name);
 		static Ref<Texture> GetTexture(std::string name);
 		static Ref<EnvironmentMap> GetEnvironmentMap(std::string name);
+		static Ref<ModelDatabase> GetModelDatabase(std::string name);
 
 		static int LoadModels(std::filesystem::path meshFilePath);
+		static int LoadModelDatabases(std::filesystem::path modelDatabasePath);
 		static int RegisterModelResources();
 
 		static std::string ResolveIncludes(const std::string& shaderSource, const std::string& fileName, std::unordered_map<std::string, bool>& includeMap, bool firstTime);
