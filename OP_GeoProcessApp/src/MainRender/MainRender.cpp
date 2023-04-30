@@ -85,6 +85,8 @@ namespace GP
 		// ------- Model ------- //
 		Ref<Model> model;
 		Ref<EditorMesh> editorMesh;
+		Ref<ModelDatabase> modelDatabase;
+		Ref<PCADatabase> pcaDatabase;
 		glm::mat4 modelTransform = glm::mat4(1.0f);
 
 
@@ -123,8 +125,10 @@ namespace GP
 
 		// Initialize Model
 		s_RenderData.model = ResourceManager::GetModel("centaur");
-		s_RenderData.editorMesh = EditorMesh::Create(s_RenderData.model);
+		// s_RenderData.editorMesh = EditorMesh::Create(s_RenderData.model);
+ 		s_RenderData.modelDatabase = ResourceManager::GetModelDatabase("SPRING_MALE");
 
+		s_RenderData.pcaDatabase = PCADatabase::Create(s_RenderData.modelDatabase);
 		// Initialize main render settings
 		RenderCommand::Enable(MODE::DEPTH_TEST);
 		RenderCommand::Enable(MODE::CULL_FACE);
@@ -309,13 +313,13 @@ namespace GP
 				s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
 				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
 
-				s_RenderData.editorMesh->Draw(s_RenderData.mainShader,
+				/*s_RenderData.editorMesh->Draw(s_RenderData.mainShader,
 											  s_RenderData.colorShader,
 											  s_RenderData.flatColorRenderShader,
 											  s_RenderData.environmentMap,
-											  ditheringTex);
+											  ditheringTex); */
 
-				if (s_RenderData.editorMesh->m_RenderSpecs.showSamples)
+				/*if (s_RenderData.editorMesh->m_RenderSpecs.showSamples)
 				{
 					for (auto& e : s_RenderData.editorMesh->m_SamplePoints)
 					{
@@ -327,7 +331,7 @@ namespace GP
 						s_RenderData.mainShader->Bind();
 						s_RenderData.editorMesh->GetSphere()->Draw();
 					}
-				}
+				} */
 
 
 				s_RenderData.environmentMap->RenderSkybox();

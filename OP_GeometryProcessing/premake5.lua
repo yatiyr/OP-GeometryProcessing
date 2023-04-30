@@ -50,6 +50,8 @@ project "OP_GeometryProcessing"
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.tinyexr}",
 		"%{IncludeDir.Assimp}",
+            "%{IncludeDir.Eigen}",
+		"%{IncludeDir.Spectra}",
 		"src",
 		"src/Config"
 	}

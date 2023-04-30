@@ -11,6 +11,8 @@ IncludeDir["ImPlot"]      = "%{wks.location}/OP_GeometryProcessing/external/impl
 IncludeDir["glm"]         = "%{wks.location}/OP_GeometryProcessing/external/glm"
 IncludeDir["stb_image"]   = "%{wks.location}/OP_GeometryProcessing/external/stb_image"
 IncludeDir["tinyexr"]     = "%{wks.location}/OP_GeometryProcessing/external/tinyexr"
+IncludeDir["Eigen"]       = "%{wks.location}/OP_GeometryProcessing/external/eigen"
+IncludeDir["Spectra"]     = "%{wks.location}/OP_GeometryProcessing/external/spectr"
 
 IncludeDir["ImGuizmo"]    = "%{wks.location}/OP_GeometryProcessing/external/ImGuizmo"
 IncludeDir["Assimp"]      = "%{wks.location}/OP_GeometryProcessing/external/assimp/include"

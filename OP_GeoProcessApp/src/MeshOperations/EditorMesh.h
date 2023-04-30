@@ -158,7 +158,10 @@ namespace GP
 	public:
 		EditorMesh::EditorMesh() {}
 		EditorMesh(Ref<Model> model);
+		EditorMesh(std::string name, const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indices);
 		static Ref<EditorMesh> Create(Ref<Model> model);
+		static Ref<EditorMesh> Create(std::string name, const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indices);
+
 
 		Ref<Mesh> GetMainMesh();
 		Ref<Line> GetLine();
@@ -290,7 +293,6 @@ namespace GP
 		void SetupFlatElements();
 		void SetupTriangles();
 
-
 		void CalculateSmoothNormals();
 
 		std::vector<Triangle> GiveTrianglesWithVertex(uint32_t index);
@@ -315,6 +317,7 @@ namespace GP
 
 	private:
 		virtual void BuildVertices() override;
+		void BuildVerticesNoMesh();
 		void SetupAdjacencyMap();
 		void SetupNodeTable();
 		void SetupNodeTableExport();

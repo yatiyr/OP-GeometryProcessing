@@ -3,6 +3,7 @@
 #include <GeoProcess/System/RenderSystem/CameraSystem/EditorCamera.h>
 #include <GeoProcess/System/RenderSystem/Framebuffer.h>
 #include <MeshOperations/EditorMesh.h>
+#include <MeshOperations/PCADatabase.h>
 
 #include <glm/glm.hpp>
 

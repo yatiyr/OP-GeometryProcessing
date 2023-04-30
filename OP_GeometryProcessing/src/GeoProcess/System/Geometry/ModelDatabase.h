@@ -31,8 +31,18 @@ namespace GP
 		void SetName(std::string name);
 
 		static Ref<ModelDatabase> Create(std::string Name);
+
+		const std::vector<MeshBlueprint>& GetMeshes();
+
+		const std::vector<uint32_t>& GetIndices();
+
+		uint32_t GetVertexCount();
+		uint32_t GetIndexCount();
 	private:
 		std::string m_Name;
 		std::vector<MeshBlueprint> m_Meshes;
+
+		uint32_t m_VertexCount;
+		uint32_t m_IndexCount;
 	};
 }

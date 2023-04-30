@@ -26,6 +26,8 @@ project "OP_GeoProcessApp"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.Glad}",
+            "%{IncludeDir.Eigen}",
+		"%{IncludeDir.Spectra}",
 		"src"
 	}
 

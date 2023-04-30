@@ -21,6 +21,8 @@ namespace GP
 		if (currentNode->mNumMeshes > 0)
 		{
 			aiMesh* mesh = scene->mMeshes[currentNode->mMeshes[0]];
+			m_VertexCount = mesh->mNumVertices;
+			m_IndexCount = mesh->mNumFaces;
 
 			for (uint32_t i = 0; i < mesh->mNumVertices; i++)
 			{
@@ -69,6 +71,22 @@ namespace GP
 	Ref<ModelDatabase> ModelDatabase::Create(std::string name)
 	{
 		return std::make_shared<ModelDatabase>(name);
+	}
+	const std::vector<MeshBlueprint>& ModelDatabase::GetMeshes()
+	{
+		return m_Meshes;
+	}
+	const std::vector<uint32_t>& ModelDatabase::GetIndices()
+	{
+		return m_Meshes[0].indices;
+	}
+	uint32_t ModelDatabase::GetVertexCount()
+	{
+		return m_VertexCount;
+	}
+	uint32_t ModelDatabase::GetIndexCount()
+	{
+		return m_IndexCount;
 	}
 }
 

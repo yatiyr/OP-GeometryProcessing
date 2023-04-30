@@ -231,7 +231,9 @@ namespace GP
 					db->AddModel(scene->mRootNode, scene);
 				}
 			
-				uint32_t id = Allocate(entry.path().filename().string());
+				std::string dbName = entry.path().filename().string();
+
+				uint32_t id = Allocate(dbName);
 				s_ResourceManagerData.ModelDatabases[id] = db;
 
 				GP_TRACE("Mesh count of Database {0} is {1}", entry.path().filename(), db->GetMeshCount());

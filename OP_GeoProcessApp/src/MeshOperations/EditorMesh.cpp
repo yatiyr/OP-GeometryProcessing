@@ -112,9 +112,30 @@ namespace GP
 		m_Count = 0;
 	}
 
+	EditorMesh::EditorMesh(std::string name, const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indices)
+	{
+		m_MainMesh.Name = name;
+
+		std::vector<glm::vec3> lineverts = { glm::vec3(0.0f, 0.0f, 0.0f) };
+		m_Line = Line::Create(lineverts);
+
+		m_Sphere = Icosphere::Create(0.8f, 1, false);
+		m_Vertices = vertices;
+		m_Indices = indices;
+		BuildVerticesNoMesh();
+
+		m_CoreSize = std::thread::hardware_concurrency();
+		m_Count = 0;
+	}
+
 	Ref<EditorMesh> EditorMesh::Create(Ref<Model> model)
 	{
 		return std::make_shared<EditorMesh>(model);
+	}
+
+	Ref<EditorMesh> EditorMesh::Create(std::string name, const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indices)
+	{
+		return std::make_shared<EditorMesh>(name, vertices, indices);
 	}
 
 	Ref<Mesh> EditorMesh::GetMainMesh()
@@ -237,6 +258,78 @@ namespace GP
 		 // These will be separated as different functions
 		//ComputeNxNGeodesicDistanceMatrix();
 		//ExportNxNGeodesicDistanceMatrix();
+	}
+
+	// This function is mostly the same with build vertices. However
+	// the difference is that we use this function if we construct our
+	// mesh from set of vertices and indices we get from a database
+	void EditorMesh::BuildVerticesNoMesh()
+	{
+
+		// We first setup the triangles each triangle will
+		// hold 3 indices for vertices in CCW direction and
+		// the indices follow the order of m_Indices
+		SetupTriangles();
+
+		// Calculate smooth normals
+		CalculateSmoothNormals();
+
+		// We also need a flat shaded version because for quality
+		// coloring, we need to color individual triangles, I might
+		// change this to something better in the future If I can
+		// find one but this is the solution now
+		SetupFlatElements();
+
+		// Node table is used for keeping track of vertices while running
+		// dijkstra's shortest path algorithm, it is used for geodesic distances
+		SetupNodeTable();
+		SetupNodeTableExport();
+
+		// Adjacency map is an unordered map (hash table) which holds the
+		// indices of vertices that are neighbors to a specific vertex
+		// it is used for coloring computations and also geodesic distances
+		SetupAdjacencyMap();
+
+		// Tangents and bitangents are calculated from normals, texture coordinates
+		// and vertex positions, in our case we might not need for this because we
+		// do not deal with textures in geometry processing course
+		SetupTangentBitangents(false);
+
+
+		// We compute colors of each vertices using Average Geodesic Distances and
+		// gaussian curvature. We also compute colors for each triangle's quality
+		// all these values for Average Geodesic Distance, Gaussian Curvature and
+		// Triangle's quality are between 0 and 1 and the colors assigned to them
+		// are between red and blue (red - green - blue). For getting color gradient
+		// I have used hsv color space instead of rgb.
+		CalculateColors();
+
+		// After calculating the colors, we setup array buffer for drawing with color
+		// there are separate vertex array objects and vertex buffer objects because
+		// I did not want to fill the buffers everytime I change a drawing mode
+		// Quality array buffer uses flat coloring because we want to color each
+		// triangle
+		SetupArrayBufferForColoring(m_AGDArrayBuffer, m_AverageGeodesicDistanceColors);
+		SetupArrayBufferForColoring(m_GCArrayBuffer, m_GaussianCurvatureColors);
+		SetupArrayBufferForFlatColoring(m_QualityArrayBuffer, m_QualityColors);
+
+		// We register array buffers to the mesh for coloring
+		SetupMeshForColoring(m_AGDVertexArray, m_AGDVertexBuffer,
+			m_AGDArrayBuffer, m_AGDIndexBuffer);
+
+		SetupMeshForColoring(m_GCVertexArray, m_GCVertexBuffer,
+			m_GCArrayBuffer, m_GCIndexBuffer);
+
+		SetupMeshForFlatColoring(m_QualityVertexArray, m_QualityVertexBuffer,
+			m_QualityArrayBuffer, m_QualityIndexBuffer);
+
+		// We setup and register array buffers for drawing normally
+		SetupArrayBuffer();
+		SetupMesh();
+
+		// These will be separated as different functions
+	   //ComputeNxNGeodesicDistanceMatrix();
+	   //ExportNxNGeodesicDistanceMatrix();
 	}
 
 	void EditorMesh::SetupTriangles()
@@ -892,7 +985,7 @@ namespace GP
 
 		m_AverageGeodesicDistanceColors.clear();
 		m_SamplePoints.clear();
-		m_SamplePoints = SampleNPoints(50);
+		m_SamplePoints = SampleNPoints(5);
 
 
 		std::vector<float> avgDistances;
