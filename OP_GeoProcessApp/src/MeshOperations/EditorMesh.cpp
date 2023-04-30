@@ -138,6 +138,36 @@ namespace GP
 		return std::make_shared<EditorMesh>(name, vertices, indices);
 	}
 
+	void EditorMesh::UpdateVertices(const std::vector<glm::vec3>& newVertices)
+	{
+		m_Vertices = newVertices;
+
+
+		// Calculate smooth normals
+		// CalculateSmoothNormals();
+
+		SetupFlatElements();
+		SetupTangentBitangents(false);
+		//CalculateColors();
+		SetupArrayBufferForColoring(m_AGDArrayBuffer, m_AverageGeodesicDistanceColors);
+		SetupArrayBufferForColoring(m_GCArrayBuffer, m_GaussianCurvatureColors);
+		SetupArrayBufferForFlatColoring(m_QualityArrayBuffer, m_QualityColors);
+
+		// We register array buffers to the mesh for coloring
+		SetupMeshForColoring(m_AGDVertexArray, m_AGDVertexBuffer,
+			m_AGDArrayBuffer, m_AGDIndexBuffer);
+
+		SetupMeshForColoring(m_GCVertexArray, m_GCVertexBuffer,
+			m_GCArrayBuffer, m_GCIndexBuffer);
+
+		SetupMeshForFlatColoring(m_QualityVertexArray, m_QualityVertexBuffer,
+			m_QualityArrayBuffer, m_QualityIndexBuffer);
+
+		// We setup and register array buffers for drawing normally
+		SetupArrayBuffer();
+		SetupMesh();
+	}
+
 	Ref<Mesh> EditorMesh::GetMainMesh()
 	{
 		return m_MainMesh.Mesh;
@@ -266,13 +296,12 @@ namespace GP
 	void EditorMesh::BuildVerticesNoMesh()
 	{
 
+		m_TexCoords.resize(m_Vertices.size(), glm::vec2(0.0f, 0.0f));
 		// We first setup the triangles each triangle will
 		// hold 3 indices for vertices in CCW direction and
 		// the indices follow the order of m_Indices
 		SetupTriangles();
 
-		// Calculate smooth normals
-		CalculateSmoothNormals();
 
 		// We also need a flat shaded version because for quality
 		// coloring, we need to color individual triangles, I might
@@ -289,6 +318,11 @@ namespace GP
 		// indices of vertices that are neighbors to a specific vertex
 		// it is used for coloring computations and also geodesic distances
 		SetupAdjacencyMap();
+
+
+		// Calculate smooth normals
+		CalculateSmoothNormals();
+		std::cout << m_Normals.size() << std::endl;
 
 		// Tangents and bitangents are calculated from normals, texture coordinates
 		// and vertex positions, in our case we might not need for this because we

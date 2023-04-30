@@ -308,6 +308,26 @@ namespace GP
 		ImGui::End();
 
 
+
+
+		ImGui::Begin("PCA Computations", nullptr, ImGuiWindowFlags_NoTitleBar);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
+		Ref<PCADatabase> dB = MainRender::GetDatabase();
+		uint32_t coeffSize = dB->GetCoeffSize();
+		for (uint32_t i = 0; i < coeffSize; i++)
+		{
+			std::string coeffName = std::string("Coeff ") + std::to_string(i);
+			if (ImGui::DragFloat(coeffName.c_str(), dB->GetCoeff(i), 0.1f, -10.0f, 10.0f))
+			{
+				dB->CalculateNewVertices();
+			}
+		}
+
+		ImGui::PopStyleVar();
+		ImGui::End();
+
+
 	}
 
 	void EditorLayer::OnEvent(Event& e)

@@ -162,6 +162,8 @@ namespace GP
 		static Ref<EditorMesh> Create(Ref<Model> model);
 		static Ref<EditorMesh> Create(std::string name, const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indices);
 
+		void UpdateVertices(const std::vector<glm::vec3>& newVertices);
+
 
 		Ref<Mesh> GetMainMesh();
 		Ref<Line> GetLine();

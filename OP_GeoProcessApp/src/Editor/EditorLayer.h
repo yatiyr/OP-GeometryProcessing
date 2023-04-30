@@ -62,6 +62,7 @@ namespace GP
 	private:
 		static EditorLayer* s_Instance;
 
+
 		friend class ViewportComponent;
 	};
 }

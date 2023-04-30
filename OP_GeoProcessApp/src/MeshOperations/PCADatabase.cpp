@@ -73,7 +73,7 @@ namespace GP
 
 		for (uint32_t i = 0; i < x.rows(); i+=3)
 		{
-			m_Vertices.push_back(glm::vec3(x[i], x[i + 1], x[i + 2]));
+			m_Vertices.push_back(glm::vec3(x(i,0), x(i + 1, 0), x(i + 2, 0)));
 		}
 
 		// Construct mesh
@@ -92,9 +92,41 @@ namespace GP
 		return std::make_shared<PCADatabase>(modelDB);
 	}
 
-	std::vector<float>& PCADatabase::GetCoeffs()
+	Ref<EditorMesh> PCADatabase::GetEditorMesh()
 	{
-		return m_Coeffs;
+		return m_EditorMesh;
+	}
+
+	void PCADatabase::CalculateNewVertices()
+	{
+		// Calculate new vertices
+		Eigen::MatrixXd x = m_Mean;
+
+		m_Vertices.clear();
+
+		for (uint32_t i = 0; i < m_Eigenvectors.size(); i++)
+		{
+			x += m_Eigenvectors[i] * m_Coeffs[i];
+		}
+
+
+		for (uint32_t i = 0; i < x.rows(); i += 3)
+		{
+			m_Vertices.push_back(glm::vec3(x(i,0), x(i + 1, 0), x(i + 2, 0)));
+		}
+
+
+		m_EditorMesh->UpdateVertices(m_Vertices);
+	}
+
+	float* PCADatabase::GetCoeff(uint32_t index)
+	{
+		return &m_Coeffs[index];
+	}
+
+	uint32_t PCADatabase::GetCoeffSize()
+	{
+		return m_Coeffs.size();
 	}
 
 	Eigen::MatrixXd PCADatabase::CalculateMeanVertices()

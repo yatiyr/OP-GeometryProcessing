@@ -129,6 +129,8 @@ namespace GP
  		s_RenderData.modelDatabase = ResourceManager::GetModelDatabase("SPRING_MALE");
 
 		s_RenderData.pcaDatabase = PCADatabase::Create(s_RenderData.modelDatabase);
+		s_RenderData.editorMesh = s_RenderData.pcaDatabase->GetEditorMesh();
+
 		// Initialize main render settings
 		RenderCommand::Enable(MODE::DEPTH_TEST);
 		RenderCommand::Enable(MODE::CULL_FACE);
@@ -259,6 +261,11 @@ namespace GP
 		return &s_RenderData.ShowGrid;
 	}
 
+	Ref<PCADatabase> MainRender::GetDatabase()
+	{
+		return s_RenderData.pcaDatabase;
+	}
+
 	int* MainRender::GetGeoDistStartIndex()
 	{
 		return &s_RenderData.editorMesh->m_StartIndex;
@@ -313,13 +320,13 @@ namespace GP
 				s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
 				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
 
-				/*s_RenderData.editorMesh->Draw(s_RenderData.mainShader,
+				s_RenderData.editorMesh->Draw(s_RenderData.mainShader,
 											  s_RenderData.colorShader,
 											  s_RenderData.flatColorRenderShader,
 											  s_RenderData.environmentMap,
-											  ditheringTex); */
+											  ditheringTex);
 
-				/*if (s_RenderData.editorMesh->m_RenderSpecs.showSamples)
+				if (s_RenderData.editorMesh->m_RenderSpecs.showSamples)
 				{
 					for (auto& e : s_RenderData.editorMesh->m_SamplePoints)
 					{
@@ -331,7 +338,7 @@ namespace GP
 						s_RenderData.mainShader->Bind();
 						s_RenderData.editorMesh->GetSphere()->Draw();
 					}
-				} */
+				}
 
 
 				s_RenderData.environmentMap->RenderSkybox();

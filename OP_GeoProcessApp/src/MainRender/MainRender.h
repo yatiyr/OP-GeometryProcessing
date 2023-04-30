@@ -41,6 +41,8 @@ namespace GP
 		static bool* GetShowGrid();
 
 
+		static Ref<PCADatabase> GetDatabase();
+
 		static int* GetGeoDistStartIndex();
 		static int* GetGeoDistEndIndex();
 		static int* GetGeodesicCalcMethod();

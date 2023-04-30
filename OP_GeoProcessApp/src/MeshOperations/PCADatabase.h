@@ -22,7 +22,9 @@ namespace GP
 
 		void CalculateNewVertices();
 
-		std::vector<float>& GetCoeffs();
+		float* GetCoeff(uint32_t index);
+
+		uint32_t GetCoeffSize();
 	private:
 
 		Eigen::MatrixXd CalculateMeanVertices();
