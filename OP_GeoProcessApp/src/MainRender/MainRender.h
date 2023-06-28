@@ -7,6 +7,8 @@
 
 #include <glm/glm.hpp>
 
+#include <Cloth/Cloth.h>
+
 namespace GP
 {
 
@@ -49,7 +51,7 @@ namespace GP
 		static bool* GetShowLine();
 		static float* GetCalcTime();
 
-		static Ref<EditorMesh> GetEditorMesh();
+		static Ref<Cloth> GetEditorMesh();
 
 	private:
 

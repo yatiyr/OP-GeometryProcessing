@@ -132,6 +132,7 @@ namespace GP
 
 		static Ref<VertexBuffer> Create(uint32_t size);
 		static Ref<VertexBuffer> Create(void* vertices, uint32_t size);
+		static Ref<VertexBuffer> VertexBuffer::CreateDynamic(uint32_t size);
 
 	};
 

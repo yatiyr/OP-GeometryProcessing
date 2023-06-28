@@ -215,7 +215,12 @@ namespace GP
 				glDisable(GL_CULL_FACE);
 		}
 
-		int currentSelectedIDMethod = MainRender::GetEditorMesh()->m_GeodesicDistanceCalcMethod;
+		ImGui::PopStyleVar();
+		ImGui::End();
+		ImGui::PopStyleVar();
+		ImGui::End();
+
+		/*int currentSelectedIDMethod = MainRender::GetEditorMesh()->m_GeodesicDistanceCalcMethod;
 		std::vector<std::string> calcMethodNames = { "Min Heap", "Array" };
 		if (ImGui::BeginCombo("CalcMethod", MainRender::GetEditorMesh()->GiveCalcMethodName().c_str(), ImGuiComboFlags_PopupAlignLeft))
 		{
@@ -234,9 +239,9 @@ namespace GP
 				}
 			}
 			ImGui::EndCombo();
-		}
+		}*/
 
-		int currentSelectedIDRenderMode = (int)MainRender::GetEditorMesh()->m_RenderSpecs.renderMode;
+		/*int currentSelectedIDRenderMode = (int)MainRender::GetEditorMesh()->m_RenderSpecs.renderMode;
 		std::vector<std::string> renderModeNames = { "AGD", "Flat", "GC", "Triangle Quality", "Smooth"};
 		if (ImGui::BeginCombo("Render Mode", MainRender::GetEditorMesh()->GiveRenderMethodName().c_str(), ImGuiComboFlags_PopupAlignLeft))
 		{
@@ -255,10 +260,10 @@ namespace GP
 				}
 			}
 			ImGui::EndCombo();
-		}
+		}*/
 
 
-		ImGui::Text("Distance Calc Time %f", MainRender::GetEditorMesh()->m_CalcTime);
+		/*ImGui::Text("Distance Calc Time %f", MainRender::GetEditorMesh()->m_CalcTime);
 		if (ImGui::InputInt("StartIndex", MainRender::GetGeoDistStartIndex()))
 		{
 			MainRender::GetEditorMesh()->SetupLineVertices();
@@ -307,10 +312,10 @@ namespace GP
 
 		ImGui::End();
 
+		*/
 
 
-
-		ImGui::Begin("PCA Computations", nullptr, ImGuiWindowFlags_NoTitleBar);
+		/*ImGui::Begin("PCA Computations", nullptr, ImGuiWindowFlags_NoTitleBar);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
 		Ref<PCADatabase> dB = MainRender::GetDatabase();
@@ -318,14 +323,14 @@ namespace GP
 		for (uint32_t i = 0; i < coeffSize; i++)
 		{
 			std::string coeffName = std::string("Coeff ") + std::to_string(i);
-			if (ImGui::DragFloat(coeffName.c_str(), dB->GetCoeff(i), 0.1f, -10.0f, 10.0f))
+			if (ImGui::DragFloat(coeffName.c_str(), dB->GetCoeff(i), 0.002f, -10.0f, 10.0f))
 			{
 				dB->CalculateNewVertices();
 			}
 		}
-
+		
 		ImGui::PopStyleVar();
-		ImGui::End();
+		ImGui::End();*/
 
 
 	}

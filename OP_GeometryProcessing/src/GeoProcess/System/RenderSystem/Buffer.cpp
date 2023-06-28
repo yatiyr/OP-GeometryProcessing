@@ -27,6 +27,14 @@ namespace GP
 		return nullptr;
 	}
 
+	Ref<VertexBuffer> VertexBuffer::CreateDynamic(uint32_t size)
+	{
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::OpenGL: return std::make_shared<OpenGLVertexBuffer>(size, true);
+		}
+	}
+
 	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t size)
 	{
 		switch (Renderer::GetAPI())

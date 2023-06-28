@@ -25,6 +25,7 @@
 #include <GeoProcess/System/Geometry/Model.h>
 #include <GeoProcess/System/Geometry/Skybox.h>
 
+#include <Cloth/Cloth.h>
 
 #define MAX_DIR_LIGHTS 2
 #define MAX_SPOT_LIGHTS 4
@@ -74,13 +75,18 @@ namespace GP
 		Ref<Shader> triangleIdShader;
 		Ref<Shader> gridShader;
 		Ref<Shader> flatColorRenderShader;
+		Ref<Shader> clothShader;
 
+		// ------- CLOTH ------ //
+		Ref<Cloth> cloth;
 
 		// ------ Meshes ------ //
 		Ref<Cube> cube;
 		Ref<Plane> plane;
 		Ref<Quad> quad;
 		Ref<Skybox> skybox;
+		Ref<Icosphere> sphere;
+
 
 		// ------- Model ------- //
 		Ref<Model> model;
@@ -122,14 +128,17 @@ namespace GP
 		s_RenderData.plane = Plane::Create();
 		s_RenderData.quad = Quad::Create();
 		s_RenderData.cube = Cube::Create();
+		s_RenderData.sphere = Icosphere::Create(0.2f, 1, true);
+
+		s_RenderData.cloth = Cloth::Create(5, 26);
 
 		// Initialize Model
 		s_RenderData.model = ResourceManager::GetModel("centaur");
 		// s_RenderData.editorMesh = EditorMesh::Create(s_RenderData.model);
- 		s_RenderData.modelDatabase = ResourceManager::GetModelDatabase("SPRING_MALE");
+ 		s_RenderData.modelDatabase = ResourceManager::GetModelDatabase("FAUST");
 
-		s_RenderData.pcaDatabase = PCADatabase::Create(s_RenderData.modelDatabase);
-		s_RenderData.editorMesh = s_RenderData.pcaDatabase->GetEditorMesh();
+		/*s_RenderData.pcaDatabase = PCADatabase::Create(s_RenderData.modelDatabase);
+		s_RenderData.editorMesh = s_RenderData.pcaDatabase->GetEditorMesh();*/
 
 		// Initialize main render settings
 		RenderCommand::Enable(MODE::DEPTH_TEST);
@@ -144,6 +153,7 @@ namespace GP
 		// Get Shaders
 		s_RenderData.mainShader = ResourceManager::GetShader("Main.glsl");
 		s_RenderData.colorShader = ResourceManager::GetShader("ColorShader.glsl");
+		s_RenderData.clothShader = ResourceManager::GetShader("ClothShader.glsl");
 		s_RenderData.postProcessingShader = ResourceManager::GetShader("PostProcessing.glsl");
 		s_RenderData.triangleIdShader = ResourceManager::GetShader("MousePicking.glsl");
 		s_RenderData.gridShader = ResourceManager::GetShader("Grid.glsl");
@@ -291,9 +301,9 @@ namespace GP
 		return &s_RenderData.editorMesh->m_CalcTime;
 	}
 
-	Ref<EditorMesh> MainRender::GetEditorMesh()
+	Ref<Cloth> MainRender::GetEditorMesh()
 	{
-		return s_RenderData.editorMesh;
+		return s_RenderData.cloth;
 	}
 
 	void MainRender::RenderChain(TimeStep ts)
@@ -305,9 +315,11 @@ namespace GP
 				s_RenderData.triangleIdFramebufferPass->GetFramebuffer()->ClearAttachment(0, -1);
 				s_RenderData.triangleIdShader->Bind();
 
+				
+				
 				s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
 				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
-				s_RenderData.model->Draw();
+				s_RenderData.sphere->Draw();
 			}
 		);
 
@@ -317,16 +329,22 @@ namespace GP
 				glStencilMask(0x00);
 
 				uint32_t ditheringTex = ResourceManager::GetTexture("BayerMatrixDithering")->GetRendererID();
-				s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
+				s_RenderData.TransformBuffer.Model = glm::mat4(1.0f);
 				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
 
-				s_RenderData.editorMesh->Draw(s_RenderData.mainShader,
+
+				s_RenderData.cloth->Draw(s_RenderData.mainShader,
 											  s_RenderData.colorShader,
 											  s_RenderData.flatColorRenderShader,
 											  s_RenderData.environmentMap,
 											  ditheringTex);
 
-				if (s_RenderData.editorMesh->m_RenderSpecs.showSamples)
+				
+				s_RenderData.TransformBuffer.Model = s_RenderData.modelTransform;
+				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
+				s_RenderData.mainShader->Bind();
+				s_RenderData.sphere->Draw();
+				/*if (s_RenderData.editorMesh->m_RenderSpecs.showSamples)
 				{
 					for (auto& e : s_RenderData.editorMesh->m_SamplePoints)
 					{
@@ -338,7 +356,7 @@ namespace GP
 						s_RenderData.mainShader->Bind();
 						s_RenderData.editorMesh->GetSphere()->Draw();
 					}
-				}
+				} */
 
 
 				s_RenderData.environmentMap->RenderSkybox();
