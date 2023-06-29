@@ -1,6 +1,8 @@
 #include <Precomp.h>
 #include <Cloth/Cloth.h>
 
+#include <Math/Math.h>
+
 #include <GeoProcess/System/RenderSystem/RenderCommand.h>
 #include <glad/glad.h>
 #include <math.h>
@@ -31,6 +33,7 @@ namespace GP
 		int i = 0;
 		int j = 0;
 
+		int id = 0;
 		// Cloth will be initialized at xy plane so
 		// z coords will always be 0
 		for (double y = -halfSize, i=0; i <= divisor; y += step, i++)
@@ -43,10 +46,17 @@ namespace GP
 				v.TexCoord = glm::vec2((x + halfSize) / size, (y + halfSize) / size);
 				m_ArrayBuffer.push_back(v);
 
-				ClothParticleProp p;
-				p.acceleration = 0.0f;
-				p.mass = 0.0f;
-				m_ClothParticleProps.push_back(p);
+				ClothParticle p;
+				p.acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
+				p.mass = 1.0f;
+				p.id = id;
+				p.moving = (i==divisor) ? false : true;
+				p.pos = glm::vec3(x, y, 0.0f);
+				p.oldPos = glm::vec3(x, y, 0.0f);
+				p.normal = glm::vec3(0.0f, 0.0f, 1.0f);
+
+				m_ClothParticles.push_back(p);
+				id++;
 			}
 		}
 
@@ -73,10 +83,149 @@ namespace GP
 				m_Indices.push_back((i + 1) * (divisor + 1) + j + 1);
 				m_Indices.push_back((i + 1) * (divisor + 1) + j);
 
+				// Constraints
+				//  2 --- 3
+				//  |     |
+				//  |     |
+				//  1 --- 4
+				int index1 = i * (divisor + 1) + j;
+				int index2 = (i + 1) * (divisor + 1) + j;
+				int index3 = (i + 1) * (divisor + 1) + j + 1;
+				int index4 = i * (divisor + 1) + j + 1;
+
+				ClothParticle* p1 = &m_ClothParticles[index1];
+				ClothParticle* p2 = &m_ClothParticles[index2];
+				ClothParticle* p3 = &m_ClothParticles[index3];
+				ClothParticle* p4 = &m_ClothParticles[index4];
+
+				m_Constraints.push_back(ClothConstraint(p1, p2));
+				m_Constraints.push_back(ClothConstraint(p1, p4));
+				m_Constraints.push_back(ClothConstraint(p2, p3));
+				m_Constraints.push_back(ClothConstraint(p3, p4));
+
 			}
 		}
 	}
 
+	void Cloth::ApplyForceToTriangle(ClothParticle* p1,
+		ClothParticle* p2,
+		ClothParticle* p3,
+		const glm::vec3& direction)
+	{
+		glm::vec3 normal = ComputeFaceNormal(p1->pos, p2->pos, p3->pos);
+		glm::vec3 normalDir = glm::normalize(normal);
+		glm::vec3 force = normal * (glm::dot(normalDir, direction));
+		p1->addForce(force);
+		p2->addForce(force);
+		p3->addForce(force);
+	}
+
+	void Cloth::Step()
+	{
+		ApplyGravity();
+		ApplyWind(glm::vec3(0.0f, 0.0f, -4.0f * TIMESTEP));
+
+		for (int i = 0; i < CONSTRAINT_ITERATIONS; i++)
+		{
+			for (auto& constraint : m_Constraints)
+			{
+				constraint.apply();
+			}
+		}
+
+		for (auto& particle : m_ClothParticles)
+		{
+			particle.step();
+		}
+
+		UpdateNormals();
+		UpdateVertexBuffer();
+	}
+
+
+	void Cloth::SphereCollision(glm::mat4 sphereTransform, float radius)
+	{
+		glm::vec3 translation;
+		glm::vec3 rotation;
+		glm::vec3 scale;
+
+		Math::DecomposeTransform(sphereTransform, translation, rotation, scale);
+
+		// Scale will always be uniform
+		float r = radius * scale.x;
+
+		glm::vec3 center = translation;
+
+		for (auto& particle : m_ClothParticles)
+		{
+			glm::vec3 v = particle.pos - center;
+			float dist = glm::length(v);
+
+			if (dist < r)
+			{
+				particle.offsetPosition(glm::normalize(v) * (r - dist) * 1.4f);
+			}
+		}
+	}
+
+
+	void Cloth::UpdateNormals()
+	{
+		for (auto& particle : m_ClothParticles)
+		{
+			particle.resetNormal();
+		}
+
+		for (int i = 0; i < m_Indices.size(); i += 3)
+		{
+			ClothParticle* p1 = &m_ClothParticles[m_Indices[i]];
+			ClothParticle* p2 = &m_ClothParticles[m_Indices[i + 1]];
+			ClothParticle* p3 = &m_ClothParticles[m_Indices[i + 2]];
+
+			glm::vec3 norm = ComputeFaceNormal(p1->pos, p2->pos, p3->pos);
+
+			p1->addNormal(norm);
+			p2->addNormal(norm);
+			p3->addNormal(norm);
+		}
+
+		for (auto& particle : m_ClothParticles)
+		{
+			particle.normal = glm::normalize(particle.normal);
+		}
+	}
+
+	void Cloth::UpdateVertexBuffer()
+	{
+		for (int i = 0; i < m_ArrayBuffer.size(); i++)
+		{
+			m_ArrayBuffer[i].Normal = m_ClothParticles[i].normal;
+			m_ArrayBuffer[i].Pos = m_ClothParticles[i].pos;
+		}
+
+		m_VertexArray->Bind();
+		m_VertexBuffer->SetData(&m_ArrayBuffer[0], m_ArrayBuffer.size() * sizeof(ClothVertex));
+	}
+
+	void Cloth::ApplyGravity()
+	{
+		for (auto& particle : m_ClothParticles)
+		{
+			particle.addForce(glm::vec3(0.0f, -9.8f * particle.mass * TIMESTEP, 0.0f));
+		}
+	}
+
+	void Cloth::ApplyWind(const glm::vec3& direction)
+	{
+		for (int i = 0; i < m_Indices.size(); i += 3)
+		{
+			ClothParticle* p1 = &m_ClothParticles[m_Indices[i]];
+			ClothParticle* p2 = &m_ClothParticles[m_Indices[i + 1]];
+			ClothParticle* p3 = &m_ClothParticles[m_Indices[i + 2]];
+
+			ApplyForceToTriangle(p1, p2, p3, direction);
+		}
+	}
 	void Cloth::SetupMesh()
 	{
 		m_VertexArray = VertexArray::Create();

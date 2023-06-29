@@ -137,6 +137,10 @@ namespace GP
 		// update camera
 		m_EditorCamera.OnUpdate(ts);
 
+		// step cloth
+		
+		MainRender::GetEditorMesh()->Step();
+		MainRender::GetEditorMesh()->SphereCollision(MainRender::GetModelTransform(), 0.5f);
 
 		MainRender::Render(m_EditorCamera, ts);
 

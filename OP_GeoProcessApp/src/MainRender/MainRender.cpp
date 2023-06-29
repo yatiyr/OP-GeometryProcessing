@@ -128,9 +128,9 @@ namespace GP
 		s_RenderData.plane = Plane::Create();
 		s_RenderData.quad = Quad::Create();
 		s_RenderData.cube = Cube::Create();
-		s_RenderData.sphere = Icosphere::Create(0.2f, 1, true);
+		s_RenderData.sphere = Icosphere::Create(0.4f, 3, true);
 
-		s_RenderData.cloth = Cloth::Create(5, 26);
+		s_RenderData.cloth = Cloth::Create(6, 100);
 
 		// Initialize Model
 		s_RenderData.model = ResourceManager::GetModel("centaur");
@@ -331,7 +331,6 @@ namespace GP
 				uint32_t ditheringTex = ResourceManager::GetTexture("BayerMatrixDithering")->GetRendererID();
 				s_RenderData.TransformBuffer.Model = glm::mat4(1.0f);
 				s_RenderData.TransformUniformBuffer->SetData(&s_RenderData.TransformBuffer, sizeof(RenderData::TransformData));
-
 
 				s_RenderData.cloth->Draw(s_RenderData.mainShader,
 											  s_RenderData.colorShader,

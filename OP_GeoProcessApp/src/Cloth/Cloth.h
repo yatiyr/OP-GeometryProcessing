@@ -14,12 +14,75 @@
 
 #include <MeshOperations/EditorMesh.h>
 
+
+#define DAMPING 0.01
+#define TIMESTEP 0.5 * 0.5 * 0.025
+#define CONSTRAINT_ITERATIONS 3
+
 namespace GP
 {
-	struct ClothParticleProp
+	struct ClothParticle
 	{
+		bool moving;
+		uint32_t id;
 		float mass;
-		float acceleration;
+		glm::vec3 acceleration;
+		glm::vec3 pos;
+		glm::vec3 oldPos;
+		glm::vec3 normal;
+
+
+		void addForce(glm::vec3 f)
+		{
+			acceleration += f / mass;
+		}
+
+		void step()
+		{
+			if (moving)
+			{
+				glm::vec3 temp = pos;
+				pos = pos + (pos - oldPos) * (float)(1.0 - DAMPING) + acceleration * (float)(TIMESTEP);
+				oldPos = temp;
+				acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
+			}
+		}
+
+		void resetAcceleration() { acceleration = glm::vec3(0.0f, 0.0f, 0.0f); }
+		void offsetPosition(glm::vec3 offset) { if (moving) pos += offset; }
+		void disableMoving() { moving = false; }
+
+		void addNormal(glm::vec3 n)
+		{
+			normal += glm::normalize(n);
+		}
+
+		void resetNormal() { normal = glm::vec3(0.0f, 0.0f, 0.0f); }
+
+	};
+
+	struct ClothConstraint
+	{
+		float restDistance;
+		ClothParticle* particle1;
+		ClothParticle* particle2;
+
+		ClothConstraint(ClothParticle* p1, ClothParticle* p2)
+		{
+			particle1 = p1;
+			particle2 = p2;
+			restDistance = glm::length(p1->pos - p2->pos);
+		}
+
+		void apply()
+		{
+			glm::vec3 p1p2 = particle2->pos - particle1->pos;
+			float dist = glm::length(p1p2);
+			glm::vec3 correction = p1p2 * (1 - restDistance / dist);
+			glm::vec3 correctionHalf = correction / 2.0f;
+			particle1->offsetPosition(correctionHalf);
+			particle2->offsetPosition(-correctionHalf);
+		}
 	};
 
 	struct ClothVertex
@@ -47,11 +110,23 @@ namespace GP
 
 		void AddIndices(uint32_t i1, uint32_t i2, uint32_t i3);
 
-		void ClearArrays();
+		void ApplyForceToTriangle(ClothParticle* p1,
+			ClothParticle* p2,
+			ClothParticle* p3,
+			const glm::vec3& direction);
 
-		uint32_t GetVertexCount() const;
-		uint32_t GetNormalCount() const;
-		uint32_t GetTriangleCount() const;
+		void ApplyGravity();
+
+		void ApplyWind(const glm::vec3& direction);
+
+		void Step();
+
+
+		void SphereCollision(glm::mat4 sphereTransform, float radius);
+
+		void UpdateNormals();
+		
+		void UpdateVertexBuffer();
 
 		void Draw(Ref<Shader> mainShader,
 			Ref<Shader> colorShader,
@@ -66,7 +141,8 @@ namespace GP
 			const glm::vec3& v3);
 
 		std::vector<ClothVertex> m_ArrayBuffer;
-		std::vector<ClothParticleProp> m_ClothParticleProps;
+		std::vector<ClothParticle> m_ClothParticles;
+		std::vector<ClothConstraint> m_Constraints;
 
 		std::vector<uint32_t> m_Indices;
 
